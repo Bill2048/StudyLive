@@ -6,6 +6,8 @@ package com.chaoxing.study;
 
 public interface StreamerListener {
 
-    void onStreamerInitiated();
+    void onInitiated();
+
+    void onWindowStyleChanged(LiveStreamer.WindowStyle style);
 
 }

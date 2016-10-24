@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <RelativeLayout
-        android:id="@+id/streamer_window"
+        android:id="@+id/streamer_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/black">
@@ -14,12 +14,12 @@
             android:id="@+id/sv_previewer"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_centerInParent="true"/>
+            android:layout_centerInParent="true" />
 
         <View
             android:id="@+id/focus_panel"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
 
         <RelativeLayout
             android:id="@+id/status_panel"
@@ -32,7 +32,7 @@
                 style="@android:style/Widget.ProgressBar.Small"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerInParent="true"/>
+                android:layout_centerInParent="true" />
 
             <RelativeLayout
                 android:layout_width="wrap_content"
@@ -46,7 +46,7 @@
                     android:layout_centerHorizontal="true"
                     android:textColor="@android:color/white"
                     android:textSize="14sp"
-                    tools:text="直播尚未开始"/>
+                    tools:text="直播尚未开始" />
 
                 <Button
                     android:id="@+id/btn_status_operate"
@@ -62,7 +62,7 @@
                     android:paddingTop="6dp"
                     android:text="关闭"
                     android:textColor="@android:color/white"
-                    android:textSize="14sp"/>
+                    android:textSize="14sp" />
             </RelativeLayout>
 
         </RelativeLayout>
@@ -87,7 +87,7 @@
                     android:paddingLeft="8dp"
                     android:paddingRight="8dp"
                     android:src="@drawable/ic_clear_white_24dp"
-                    android:textColor="@android:color/white"/>
+                    android:textColor="@android:color/white" />
 
                 <TextView
                     android:id="@+id/tv_title"
@@ -96,7 +96,7 @@
                     android:layout_centerInParent="true"
                     android:text="直播"
                     android:textColor="@android:color/white"
-                    android:textSize="14sp"/>
+                    android:textSize="14sp" />
 
                 <ImageButton
                     android:id="@+id/ibtn_switch_camera"
@@ -106,7 +106,7 @@
                     android:background="@android:color/transparent"
                     android:paddingLeft="8dp"
                     android:paddingRight="8dp"
-                    android:src="@drawable/recorder_rotate_icon"/>
+                    android:src="@drawable/recorder_rotate_icon" />
             </RelativeLayout>
 
             <RelativeLayout
@@ -125,7 +125,7 @@
                     android:maxLines="1"
                     android:textColor="@android:color/white"
                     android:textSize="14sp"
-                    tools:text="主播名字"/>
+                    tools:text="主播名字" />
 
                 <Chronometer
                     android:id="@+id/ch_timer"
@@ -138,7 +138,7 @@
                     android:format="%s"
                     android:gravity="center"
                     android:textColor="@android:color/white"
-                    android:textSize="14sp"/>
+                    android:textSize="14sp" />
 
                 <TextView
                     android:id="@+id/tv_viewer_count"
@@ -149,7 +149,7 @@
                     android:layout_toLeftOf="@+id/ibtn_zoom"
                     android:textColor="#A5C6FF"
                     android:textSize="14sp"
-                    tools:text="已看:25/45"/>
+                    tools:text="已看:25/45" />
 
                 <ImageButton
                     android:id="@+id/ibtn_zoom"
@@ -159,7 +159,7 @@
                     android:background="@android:color/transparent"
                     android:paddingLeft="8dp"
                     android:paddingRight="8dp"
-                    android:src="@drawable/ic_zoom_out_map_white_24dp"/>
+                    android:src="@drawable/ic_zoom_out_map_white_24dp" />
             </RelativeLayout>
         </RelativeLayout>
 
@@ -172,7 +172,5 @@
             android:visibility="gone">
 
         </RelativeLayout>
-
     </RelativeLayout>
-
 </FrameLayout>

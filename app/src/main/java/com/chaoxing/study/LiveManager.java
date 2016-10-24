@@ -12,6 +12,8 @@ public class LiveManager {
     FragmentActivity mActivity;
     private View mLiveContent;
 
+    private LiveDragLayout mDragLayout;
+
     private LiveStreamer mLiveStreamer;
     private boolean mPushing;
 
@@ -20,13 +22,16 @@ public class LiveManager {
     public LiveManager(FragmentActivity activity, View liveContent) {
         mActivity = activity;
         mLiveContent = liveContent;
+        mDragLayout = (LiveDragLayout) mLiveContent.findViewById(R.id.drag_layout);
         initStreamer();
         initPlayer();
     }
 
     private void initStreamer() {
         mLiveContent.setVisibility(View.GONE);
-        mLiveStreamer = new LiveStreamer(mActivity, mLiveContent.findViewById(R.id.streamer_content));
+        View streamerWindow = mLiveContent.findViewById(R.id.streamer_window);
+        mDragLayout.setDragView(streamerWindow);
+        mLiveStreamer = new LiveStreamer(mActivity, streamerWindow);
         mLiveStreamer.setStreamerListener(mStreamerListener);
     }
 
@@ -36,9 +41,18 @@ public class LiveManager {
 
     private StreamerListener mStreamerListener = new StreamerListener() {
         @Override
-        public void onStreamerInitiated() {
+        public void onInitiated() {
             if (mPushing) {
                 mLiveStreamer.startStream();
+            }
+        }
+
+        @Override
+        public void onWindowStyleChanged(LiveStreamer.WindowStyle style) {
+            if (LiveStreamer.WindowStyle.SMALL.equals(style)) {
+                mDragLayout.setDragEnable(true);
+            } else {
+                mDragLayout.setDragEnable(false);
             }
         }
     };

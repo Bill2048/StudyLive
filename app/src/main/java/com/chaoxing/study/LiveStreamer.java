@@ -36,9 +36,9 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     private Handler mHandler = new Handler();
 
     private FragmentActivity mActivity;
-    private View mContentView;
-
     private View mStreamerWindow;
+
+    private View mStreamerContent;
     private GLSurfaceView mSvPreviewer;
     private KSYStreamer mStreamer;
 
@@ -74,9 +74,9 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
     private GestureDetectorCompat mDetector;
 
-    public LiveStreamer(FragmentActivity activity, View contentView) {
+    public LiveStreamer(FragmentActivity activity, View streamerWindow) {
         mActivity = activity;
-        mContentView = contentView;
+        mStreamerWindow = streamerWindow;
         initDebug();
         initView();
         initWindow();
@@ -84,10 +84,10 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     }
 
     private void initView() {
-        mStreamerWindow = mContentView.findViewById(R.id.streamer_window);
-        mSvPreviewer = (GLSurfaceView) mContentView.findViewById(R.id.sv_previewer);
+        mStreamerContent = mStreamerWindow.findViewById(R.id.streamer_content);
+        mSvPreviewer = (GLSurfaceView) mStreamerWindow.findViewById(R.id.sv_previewer);
 
-        mFocusPanel = mContentView.findViewById(R.id.focus_panel);
+        mFocusPanel = mStreamerWindow.findViewById(R.id.focus_panel);
         mFocusPanel.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -96,41 +96,41 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         });
         mDetector = new GestureDetectorCompat(mActivity, new MoveWindow());
 
-        mStatusPanel = mContentView.findViewById(R.id.status_panel);
+        mStatusPanel = mStreamerWindow.findViewById(R.id.status_panel);
         mStatusPanel.setVisibility(View.GONE);
-        mPbLoading = (ProgressBar) mContentView.findViewById(R.id.pb_loading);
-        mTvStatus = (TextView) mContentView.findViewById(R.id.tv_status);
-        mBtnStatusOperate = (Button) mContentView.findViewById(R.id.btn_status_operate);
+        mPbLoading = (ProgressBar) mStreamerWindow.findViewById(R.id.pb_loading);
+        mTvStatus = (TextView) mStreamerWindow.findViewById(R.id.tv_status);
+        mBtnStatusOperate = (Button) mStreamerWindow.findViewById(R.id.btn_status_operate);
 
-        mControlPanel = mContentView.findViewById(R.id.control_panel);
-        mToolbar = mContentView.findViewById(R.id.toolbar);
-        mIbtnClose = (ImageButton) mContentView.findViewById(R.id.ibtn_close);
+        mControlPanel = mStreamerWindow.findViewById(R.id.control_panel);
+        mToolbar = mStreamerWindow.findViewById(R.id.toolbar);
+        mIbtnClose = (ImageButton) mStreamerWindow.findViewById(R.id.ibtn_close);
         mIbtnClose.setOnClickListener(this);
-        mTvTitle = (TextView) mContentView.findViewById(R.id.tv_title);
-        mIbtnSwitchCamera = (ImageButton) mContentView.findViewById(R.id.ibtn_switch_camera);
+        mTvTitle = (TextView) mStreamerWindow.findViewById(R.id.tv_title);
+        mIbtnSwitchCamera = (ImageButton) mStreamerWindow.findViewById(R.id.ibtn_switch_camera);
         mIbtnSwitchCamera.setOnClickListener(this);
-        mBottomBar = mContentView.findViewById(R.id.bottom_bar);
-        mTvAnchor = (TextView) mContentView.findViewById(R.id.tv_anchor);
-        mChTimer = (Chronometer) mContentView.findViewById(R.id.ch_timer);
-        mTvViewerCount = (TextView) mContentView.findViewById(R.id.tv_viewer_count);
-        mIbtnZoom = (ImageButton) mContentView.findViewById(R.id.ibtn_zoom);
+        mBottomBar = mStreamerWindow.findViewById(R.id.bottom_bar);
+        mTvAnchor = (TextView) mStreamerWindow.findViewById(R.id.tv_anchor);
+        mChTimer = (Chronometer) mStreamerWindow.findViewById(R.id.ch_timer);
+        mTvViewerCount = (TextView) mStreamerWindow.findViewById(R.id.tv_viewer_count);
+        mIbtnZoom = (ImageButton) mStreamerWindow.findViewById(R.id.ibtn_zoom);
         mIbtnZoom.setOnClickListener(this);
     }
 
     private int land;
 
     private void initDebug() {
-        mDebugPanel = mContentView.findViewById(R.id.debug_panel);
+        mDebugPanel = mStreamerWindow.findViewById(R.id.debug_panel);
         if (BuildConfig.DEBUG) {
             mDebugPanel.setVisibility(View.VISIBLE);
         }
     }
 
     private void initWindow() {
-        ViewGroup.LayoutParams lp = mStreamerWindow.getLayoutParams();
+        ViewGroup.LayoutParams lp = mStreamerContent.getLayoutParams();
         lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
         lp.height = 640;
-        mStreamerWindow.setLayoutParams(lp);
+        mStreamerContent.setLayoutParams(lp);
         ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
         lpSv.width = 480;
         lpSv.height = 640;
@@ -230,7 +230,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
             case StreamerConstants.KSY_STREAMER_CAMERA_INIT_DONE:
                 Log.d(TAG, "推流初始化完成");
                 mInitiated = true;
-                streamerListener.onStreamerInitiated();
+                streamerListener.onInitiated();
 //                if (mAutoStart) {
 //                    startStream();
 //                }
@@ -368,11 +368,11 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     }
 
     public void show() {
-        mContentView.setVisibility(View.VISIBLE);
+        mStreamerWindow.setVisibility(View.VISIBLE);
     }
 
     public void hide() {
-        mContentView.setVisibility(View.GONE);
+        mStreamerWindow.setVisibility(View.GONE);
     }
 
     private WindowStyle mWindowStyle = WindowStyle.NORMAL;
@@ -390,15 +390,14 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     public void setWindowStyle(WindowStyle style) {
         mWindowStyle = style;
         if (style.equals(WindowStyle.LARGE)) {
-            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerWindow.getLayoutParams();
+            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
             lpWindow.width = ViewGroup.LayoutParams.MATCH_PARENT;
             lpWindow.height = ViewGroup.LayoutParams.MATCH_PARENT;
             lpWindow.leftMargin = 0;
             lpWindow.topMargin = 0;
             lpWindow.rightMargin = 0;
             lpWindow.bottomMargin = 0;
-            mStreamerWindow.setLayoutParams(lpWindow);
-            mStreamerWindow.invalidate();
+            mStreamerContent.setLayoutParams(lpWindow);
 
             Rect appRect = new Rect();
             mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(appRect);
@@ -410,14 +409,14 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
             toggleControlPanel(true);
         } else if (style.equals(WindowStyle.SMALL)) {
-            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerWindow.getLayoutParams();
+            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
             lpWindow.width = 300;
             lpWindow.height = 400;
             lpWindow.leftMargin = 0;
             lpWindow.topMargin = dp2px(mActivity, 50);
             lpWindow.rightMargin = 0;
             lpWindow.bottomMargin = 0;
-            mStreamerWindow.setLayoutParams(lpWindow);
+            mStreamerContent.setLayoutParams(lpWindow);
 
             ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
             lpSv.width = 300;
@@ -426,14 +425,14 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
             toggleControlPanel(false);
         } else {
-            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerWindow.getLayoutParams();
+            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
             lpWindow.width = ViewGroup.LayoutParams.MATCH_PARENT;
             lpWindow.height = 640;
             lpWindow.leftMargin = 0;
             lpWindow.topMargin = 0;
             lpWindow.rightMargin = 0;
             lpWindow.bottomMargin = 0;
-            mStreamerWindow.setLayoutParams(lpWindow);
+            mStreamerContent.setLayoutParams(lpWindow);
 
             ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
             lpSv.width = 480;
@@ -442,6 +441,8 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
             toggleControlPanel(true);
         }
+
+        streamerListener.onWindowStyleChanged(mWindowStyle);
     }
 
     public void onResume() {
@@ -472,42 +473,20 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
     private final class MoveWindow extends GestureDetector.SimpleOnGestureListener {
 
-        private String TAG = "GestureDetector";
-
-        private float mLeftMargin;
-        private float mTopMargin;
-        private float mRightMargin;
-        private float mBottomMargin;
-
         @Override
         public boolean onDown(MotionEvent e) {
-            Log.d(TAG, "onDown()");
-            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) mStreamerWindow.getLayoutParams();
-            mLeftMargin = mlp.leftMargin;
-            mTopMargin = mlp.topMargin;
-            mRightMargin = mlp.rightMargin;
-            mBottomMargin = mlp.bottomMargin;
-            return true;
+            return false;
         }
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
-            Log.d(TAG, "onSingleTapUp()");
             if (mWindowStyle.equals(WindowStyle.SMALL)) {
                 zoomWindow();
             } else {
                 toggleControlPanel();
             }
-            return true;
+            return false;
         }
-
-        @Override
-        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            Log.d(TAG, "onScroll() x : " + (e1.getRawX() - e2.getRawX()) + " y : " + (e1.getRawY() - e2.getRawY()));
-
-            return true;
-        }
-
 
     }
 
