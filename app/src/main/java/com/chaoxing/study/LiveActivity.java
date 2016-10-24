@@ -1,10 +1,10 @@
 package com.chaoxing.study;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.app.FragmentActivity;
 import android.view.View;
 
-public class LiveActivity extends AppCompatActivity {
+public class LiveActivity extends FragmentActivity {
 
     private LiveManager mLiveManager;
 

@@ -1,12 +1,16 @@
 package com.chaoxing.study;
 
+import android.content.Context;
 import android.content.res.Configuration;
-import android.hardware.Camera;
+import android.graphics.Rect;
 import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -57,11 +61,18 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     private TextView mTvViewerCount;
     private ImageButton mIbtnZoom;
 
+    public enum WindowStyle {
+        NORMAL,
+        LARGE,
+        SMALL,
+    }
 
     private boolean mRecording;
     private boolean mInitiated;
 
     private StreamerListener streamerListener;
+
+    private GestureDetectorCompat mDetector;
 
     public LiveStreamer(FragmentActivity activity, View contentView) {
         mActivity = activity;
@@ -77,6 +88,13 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         mSvPreviewer = (GLSurfaceView) mContentView.findViewById(R.id.sv_previewer);
 
         mFocusPanel = mContentView.findViewById(R.id.focus_panel);
+        mFocusPanel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return mDetector.onTouchEvent(event);
+            }
+        });
+        mDetector = new GestureDetectorCompat(mActivity, new MoveWindow());
 
         mStatusPanel = mContentView.findViewById(R.id.status_panel);
         mStatusPanel.setVisibility(View.GONE);
@@ -128,7 +146,44 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         } else if (id == R.id.ibtn_switch_camera) {
             switchCamera();
         } else if (id == R.id.ibtn_zoom) {
-            zoom();
+            zoomWindow();
+        }
+    }
+
+//    @Override
+//    public boolean onTouch(View v, MotionEvent event) {
+//        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+//            if (mWindowStyle.equals(WindowStyle.SMALL)) {
+//                zoomWindow();
+//            } else {
+//                toggleControlPanel();
+//            }
+//        }
+//        return false;
+//    }
+
+    private Runnable mHideControlPanelRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mControlPanel.setVisibility(View.GONE);
+        }
+    };
+
+    private void toggleControlPanel() {
+        if (mControlPanel.getVisibility() == View.VISIBLE) {
+            toggleControlPanel(false);
+        } else {
+            toggleControlPanel(true);
+        }
+    }
+
+    private void toggleControlPanel(boolean toggle) {
+        mHandler.removeCallbacks(mHideControlPanelRunnable);
+        if (toggle) {
+            mHandler.postDelayed(mHideControlPanelRunnable, 5000);
+            mControlPanel.setVisibility(View.VISIBLE);
+        } else {
+            mControlPanel.setVisibility(View.GONE);
         }
     }
 
@@ -280,18 +335,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
     @Override
     public void onLogEvent(StringBuilder stringBuilder) {
-        if (BuildConfig.DEBUG) {
-            if (mStreamer != null && mStreamer.getCameraCapture() != null) {
-                Camera.Parameters parameters = mStreamer.getCameraCapture().getCameraParameters();
-                if (parameters != null) {
-                    Camera.Size size = parameters.getPreviewSize();
-                    if (size != null) {
-                        Log.d(TAG, "w : " + size.width + " h : " + size.height);
-                    }
-                }
-            }
-        }
-        Log.i(TAG, "onLogEvent() ：" + stringBuilder.toString());
+        Log.i("**" + TAG, "onLogEvent() ：" + stringBuilder.toString());
     }
 
     public void stopLive() {
@@ -331,39 +375,72 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         mContentView.setVisibility(View.GONE);
     }
 
-    private int zoom;
+    private WindowStyle mWindowStyle = WindowStyle.NORMAL;
 
-    private void zoom() {
-        if (zoom == 0) {
-            ViewGroup.LayoutParams lp = mStreamerWindow.getLayoutParams();
-            lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
-            mStreamerWindow.setLayoutParams(lp);
-            ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
-            lpSv.width = 960;
-            lpSv.height = 1280;
-            mSvPreviewer.setLayoutParams(lpSv);
-            zoom = 1;
-        } else if (zoom == 1) {
-            ViewGroup.LayoutParams lp = mStreamerWindow.getLayoutParams();
-            lp.width = 320;
-            lp.height = 480;
-            mStreamerWindow.setLayoutParams(lp);
-            ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
-            lpSv.width = 320;
-            lpSv.height = 480;
-            mSvPreviewer.setLayoutParams(lpSv);
-            zoom = 2;
+    private void zoomWindow() {
+        if (mWindowStyle.equals(WindowStyle.LARGE)) {
+            setWindowStyle(WindowStyle.SMALL);
+        } else if (mWindowStyle.equals(WindowStyle.SMALL)) {
+            setWindowStyle(WindowStyle.NORMAL);
         } else {
-            ViewGroup.LayoutParams lp = mStreamerWindow.getLayoutParams();
-            lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            lp.height = 640;
-            mStreamerWindow.setLayoutParams(lp);
+            setWindowStyle(WindowStyle.LARGE);
+        }
+    }
+
+    public void setWindowStyle(WindowStyle style) {
+        mWindowStyle = style;
+        if (style.equals(WindowStyle.LARGE)) {
+            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerWindow.getLayoutParams();
+            lpWindow.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            lpWindow.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            lpWindow.leftMargin = 0;
+            lpWindow.topMargin = 0;
+            lpWindow.rightMargin = 0;
+            lpWindow.bottomMargin = 0;
+            mStreamerWindow.setLayoutParams(lpWindow);
+            mStreamerWindow.invalidate();
+
+            Rect appRect = new Rect();
+            mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(appRect);
+            int delta = Math.min(appRect.width() / 3, appRect.height() / 4);
+            ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
+            lpSv.width = delta * 3;
+            lpSv.height = delta * 4;
+            mSvPreviewer.setLayoutParams(lpSv);
+
+            toggleControlPanel(true);
+        } else if (style.equals(WindowStyle.SMALL)) {
+            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerWindow.getLayoutParams();
+            lpWindow.width = 300;
+            lpWindow.height = 400;
+            lpWindow.leftMargin = 0;
+            lpWindow.topMargin = dp2px(mActivity, 50);
+            lpWindow.rightMargin = 0;
+            lpWindow.bottomMargin = 0;
+            mStreamerWindow.setLayoutParams(lpWindow);
+
+            ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
+            lpSv.width = 300;
+            lpSv.height = 400;
+            mSvPreviewer.setLayoutParams(lpSv);
+
+            toggleControlPanel(false);
+        } else {
+            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerWindow.getLayoutParams();
+            lpWindow.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            lpWindow.height = 640;
+            lpWindow.leftMargin = 0;
+            lpWindow.topMargin = 0;
+            lpWindow.rightMargin = 0;
+            lpWindow.bottomMargin = 0;
+            mStreamerWindow.setLayoutParams(lpWindow);
+
             ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
             lpSv.width = 480;
             lpSv.height = 640;
             mSvPreviewer.setLayoutParams(lpSv);
-            zoom = 0;
+
+            toggleControlPanel(true);
         }
     }
 
@@ -387,6 +464,51 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
     public void setStreamerListener(StreamerListener streamerListener) {
         this.streamerListener = streamerListener;
+    }
+
+    private int dp2px(Context context, int dp) {
+        return (int) (context.getResources().getDisplayMetrics().density * dp + 0.5f);
+    }
+
+    private final class MoveWindow extends GestureDetector.SimpleOnGestureListener {
+
+        private String TAG = "GestureDetector";
+
+        private float mLeftMargin;
+        private float mTopMargin;
+        private float mRightMargin;
+        private float mBottomMargin;
+
+        @Override
+        public boolean onDown(MotionEvent e) {
+            Log.d(TAG, "onDown()");
+            ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) mStreamerWindow.getLayoutParams();
+            mLeftMargin = mlp.leftMargin;
+            mTopMargin = mlp.topMargin;
+            mRightMargin = mlp.rightMargin;
+            mBottomMargin = mlp.bottomMargin;
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapUp(MotionEvent e) {
+            Log.d(TAG, "onSingleTapUp()");
+            if (mWindowStyle.equals(WindowStyle.SMALL)) {
+                zoomWindow();
+            } else {
+                toggleControlPanel();
+            }
+            return true;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            Log.d(TAG, "onScroll() x : " + (e1.getRawX() - e2.getRawX()) + " y : " + (e1.getRawY() - e2.getRawY()));
+
+            return true;
+        }
+
+
     }
 
 }
