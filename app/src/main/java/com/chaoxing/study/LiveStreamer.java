@@ -74,12 +74,12 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         mStreamerWindow = streamerWindow;
         initDebug();
         initView();
-        initWindow();
         initStreamer();
     }
 
     private void initView() {
         mStreamerContent = mStreamerWindow.findViewById(R.id.streamer_content);
+
         mSvPreviewer = (GLSurfaceView) mStreamerWindow.findViewById(R.id.sv_previewer);
 
         mFocusPanel = mStreamerWindow.findViewById(R.id.focus_panel);
@@ -113,6 +113,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         mTvViewerCount = (TextView) mStreamerWindow.findViewById(R.id.tv_viewer_count);
         mIbtnZoom = (ImageButton) mStreamerWindow.findViewById(R.id.ibtn_zoom);
         mIbtnZoom.setOnClickListener(this);
+        setWindowStyle(WindowStyle.NORMAL);
     }
 
     private int land;
@@ -122,17 +123,6 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         if (BuildConfig.DEBUG) {
             mDebugPanel.setVisibility(View.VISIBLE);
         }
-    }
-
-    private void initWindow() {
-        ViewGroup.LayoutParams lp = mStreamerContent.getLayoutParams();
-        lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-        lp.height = 640;
-        mStreamerContent.setLayoutParams(lp);
-        ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
-        lpSv.width = 480;
-        lpSv.height = 640;
-        mSvPreviewer.setLayoutParams(lpSv);
     }
 
     @Override

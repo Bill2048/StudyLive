@@ -13,13 +13,23 @@ public class LiveActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live);
+
         mLiveManager = new LiveManager(this, findViewById(R.id.live_content));
+
         findViewById(R.id.debug_btn_push).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mLiveManager.push();
             }
         });
+
+        findViewById(R.id.debug_btn_pull).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mLiveManager.pull();
+            }
+        });
+
         findViewById(R.id.debug_btn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

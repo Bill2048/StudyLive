@@ -15,28 +15,31 @@ public class LiveManager {
     private LiveDragLayout mDragLayout;
 
     private LiveStreamer mLiveStreamer;
+    private View mStreamerWindow;
     private boolean mPushing;
 
     private LivePlayer mLivePlayer;
+    private View mPlayerWindow;
+    private boolean mPulling;
 
     public LiveManager(FragmentActivity activity, View liveContent) {
         mActivity = activity;
         mLiveContent = liveContent;
+        mLiveContent.setVisibility(View.GONE);
         mDragLayout = (LiveDragLayout) mLiveContent.findViewById(R.id.drag_layout);
         initStreamer();
         initPlayer();
     }
 
     private void initStreamer() {
-        mLiveContent.setVisibility(View.GONE);
-        View streamerWindow = mLiveContent.findViewById(R.id.streamer_window);
-        mDragLayout.setDragView(streamerWindow);
-        mLiveStreamer = new LiveStreamer(mActivity, streamerWindow);
+        mStreamerWindow = mLiveContent.findViewById(R.id.streamer_window);
+        mLiveStreamer = new LiveStreamer(mActivity, mStreamerWindow);
         mLiveStreamer.setStreamerListener(mStreamerListener);
     }
 
     private void initPlayer() {
-        mLivePlayer = new LivePlayer(mActivity, mLiveContent.findViewById(R.id.player_content));
+        mPlayerWindow = mLiveContent.findViewById(R.id.player_window);
+        mLivePlayer = new LivePlayer(mActivity, mPlayerWindow);
     }
 
     private StreamerListener mStreamerListener = new StreamerListener() {
@@ -61,19 +64,34 @@ public class LiveManager {
         mPushing = true;
         mLivePlayer.hide();
         mLiveStreamer.show();
+        mDragLayout.setDragView(mStreamerWindow);
         mLiveContent.setVisibility(View.VISIBLE);
         mLiveStreamer.startCameraPreviewWithPermCheck();
+    }
+
+    public void pull() {
+        mPulling = true;
+        mLiveStreamer.hide();
+        mLivePlayer.show();
+        mDragLayout.setDragView(mPlayerWindow);
+        mLiveContent.setVisibility(View.VISIBLE);
     }
 
     public void onResume() {
         if (mPushing) {
             mLiveStreamer.onResume();
         }
+        if (mPulling) {
+
+        }
     }
 
     public void onPause() {
         if (mPushing) {
             mLiveStreamer.onPause();
+        }
+        if (mPulling) {
+
         }
     }
 
