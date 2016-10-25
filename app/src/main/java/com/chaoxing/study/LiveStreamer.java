@@ -7,10 +7,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.view.GestureDetectorCompat;
 import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -72,8 +69,6 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
     private StreamerListener streamerListener;
 
-    private GestureDetectorCompat mDetector;
-
     public LiveStreamer(FragmentActivity activity, View streamerWindow) {
         mActivity = activity;
         mStreamerWindow = streamerWindow;
@@ -88,13 +83,16 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         mSvPreviewer = (GLSurfaceView) mStreamerWindow.findViewById(R.id.sv_previewer);
 
         mFocusPanel = mStreamerWindow.findViewById(R.id.focus_panel);
-        mFocusPanel.setOnTouchListener(new View.OnTouchListener() {
+        mFocusPanel.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return mDetector.onTouchEvent(event);
+            public void onClick(View v) {
+                if (mWindowStyle.equals(WindowStyle.SMALL)) {
+                    zoomWindow();
+                } else {
+                    toggleControlPanel();
+                }
             }
         });
-        mDetector = new GestureDetectorCompat(mActivity, new MoveWindow());
 
         mStatusPanel = mStreamerWindow.findViewById(R.id.status_panel);
         mStatusPanel.setVisibility(View.GONE);
@@ -149,18 +147,6 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
             zoomWindow();
         }
     }
-
-//    @Override
-//    public boolean onTouch(View v, MotionEvent event) {
-//        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-//            if (mWindowStyle.equals(WindowStyle.SMALL)) {
-//                zoomWindow();
-//            } else {
-//                toggleControlPanel();
-//            }
-//        }
-//        return false;
-//    }
 
     private Runnable mHideControlPanelRunnable = new Runnable() {
         @Override
@@ -469,25 +455,6 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
     private int dp2px(Context context, int dp) {
         return (int) (context.getResources().getDisplayMetrics().density * dp + 0.5f);
-    }
-
-    private final class MoveWindow extends GestureDetector.SimpleOnGestureListener {
-
-        @Override
-        public boolean onDown(MotionEvent e) {
-            return false;
-        }
-
-        @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-            if (mWindowStyle.equals(WindowStyle.SMALL)) {
-                zoomWindow();
-            } else {
-                toggleControlPanel();
-            }
-            return false;
-        }
-
     }
 
 }

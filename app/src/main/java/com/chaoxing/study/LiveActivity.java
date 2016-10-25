@@ -2,6 +2,7 @@ package com.chaoxing.study;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.View;
 
 public class LiveActivity extends FragmentActivity {
@@ -17,6 +18,12 @@ public class LiveActivity extends FragmentActivity {
             @Override
             public void onClick(View view) {
                 mLiveManager.push();
+            }
+        });
+        findViewById(R.id.debug_btn).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("TAG", "onclick");
             }
         });
     }

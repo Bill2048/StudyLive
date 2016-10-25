@@ -26,6 +26,13 @@
 
     </RelativeLayout>
 
+    <Button
+        android:id="@+id/debug_btn"
+        android:layout_width="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="ABCD"
+        android:layout_height="wrap_content"/>
+
     <FrameLayout
         android:id="@+id/live_content"
         android:layout_width="wrap_content"
@@ -34,4 +41,6 @@
 
         <include layout="@layout/view_live_content" />
     </FrameLayout>
+
+
 </RelativeLayout>
