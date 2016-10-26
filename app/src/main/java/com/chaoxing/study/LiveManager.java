@@ -40,14 +40,19 @@ public class LiveManager implements StreamerListener {
         mLivePlayer.hide();
         mLiveStreamer.show();
         mLiveContent.setVisibility(View.VISIBLE);
-        mLiveStreamer.startCameraPreviewWithPermCheck();
+        if (mLiveStreamer.isInitiated()) {
+            mLiveStreamer.startStream();
+        } else {
+            mLiveStreamer.startCameraPreviewWithPermCheck();
+        }
     }
 
     public void pull() {
         mPulling = true;
-        mLiveStreamer.hide();
+//        mLiveStreamer.hide();
         mLivePlayer.show();
         mLiveContent.setVisibility(View.VISIBLE);
+        mLivePlayer.prepare();
     }
 
 

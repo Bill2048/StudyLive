@@ -166,7 +166,8 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         // 设置预览View
         mStreamer.setDisplayPreview(mSvPreviewer);
         // 设置推流url（需要向相关人员申请，测试地址并不稳定！）
-        mStreamer.setUrl("rtmp://chaoxing.uplive.ks-cdn.com/live/LIVEWP1559FFCFA92?vdoid=1477167372");
+//        mStreamer.setUrl("rtmp://chaoxing.uplive.ks-cdn.com/live/LIVEWP1559FFCFA92?vdoid=1477167372");
+        mStreamer.setUrl("rtmp://chaoxing.uplive.ks-cdn.com/live/LIVELI1557281DEC6?vdoid=1477499329");
         // 设置预览分辨率, 当一边为0时，SDK会根据另一边及实际预览View的尺寸进行计算
         mStreamer.setPreviewResolution(480, 0);
         // 设置推流分辨率，可以不同于预览分辨率
@@ -210,6 +211,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
                 break;
             case StreamerConstants.KSY_STREAMER_OPEN_STREAM_SUCCESS:
                 Log.d(TAG, "推流成功");
+//                startCameraPreviewWithPermCheck();
                 mChTimer.setBase(SystemClock.elapsedRealtime());
                 mChTimer.start();
                 break;
@@ -318,6 +320,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
 
     public void startStream() {
+        startCameraPreviewWithPermCheck();
         mStreamer.startStream();
         mRecording = true;
     }

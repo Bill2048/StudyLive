@@ -2,6 +2,7 @@ package com.chaoxing.study;
 
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
@@ -38,6 +39,7 @@ public class LivePlayer implements View.OnClickListener,
 
     private View mPlayerContent;
     private SurfaceView mSvPlayer;
+    private SurfaceHolder mSvHolder;
 
     private View mStatusPanel;
     private ProgressBar mPbLoading;
@@ -60,12 +62,15 @@ public class LivePlayer implements View.OnClickListener,
         mActivity = activity;
         mPlayerWindow = playerWindow;
         initView();
+        initPlayer();
     }
 
     private void initView() {
         mPlayerContent = mPlayerWindow.findViewById(R.id.player_content);
 
         mSvPlayer = (SurfaceView) mPlayerWindow.findViewById(R.id.sv_player);
+        mSvHolder = mSvPlayer.getHolder();
+        mSvHolder.addCallback(mSurfaceCallback);
 
         mStatusPanel = mPlayerWindow.findViewById(R.id.status_panel);
         mPbLoading = (ProgressBar) mPlayerWindow.findViewById(R.id.pb_loading);
@@ -97,10 +102,16 @@ public class LivePlayer implements View.OnClickListener,
         mMediaPlayer.setBufferTimeMax(3);
         mMediaPlayer.setTimeout(5, 30);
         try {
-            mMediaPlayer.setDataSource("");
+//            mMediaPlayer.setDataSource("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVELI1557281DEC6");
+            mMediaPlayer.setDataSource("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVEWP1559FFCFA92");
+            mMediaPlayer.prepareAsync();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void prepare() {
+//        mMediaPlayer.prepareAsync();
     }
 
     @Override
@@ -115,12 +126,38 @@ public class LivePlayer implements View.OnClickListener,
         }
     }
 
+    private final SurfaceHolder.Callback mSurfaceCallback = new SurfaceHolder.Callback() {
+        @Override
+        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+            if(mMediaPlayer != null && mMediaPlayer.isPlaying())
+                mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+        }
+
+        @Override
+        public void surfaceCreated(SurfaceHolder holder) {
+            if (mMediaPlayer != null) {
+                mMediaPlayer.setDisplay(holder);
+                mMediaPlayer.setScreenOnWhilePlaying(true);
+            }
+        }
+
+        @Override
+        public void surfaceDestroyed(SurfaceHolder holder) {
+            // 此处非常重要，必须调用!!!
+            if (mMediaPlayer != null) {
+                mMediaPlayer.setDisplay(null);
+            }
+        }
+    };
+
+
     @Override
     public void onBufferingUpdate(IMediaPlayer iMediaPlayer, int i) {
     }
 
     @Override
     public void onPrepared(IMediaPlayer iMediaPlayer) {
+        Log.d(TAG, "onPrepared()");
         mVideoWidth = mMediaPlayer.getVideoWidth();
         mVideoHeight = mMediaPlayer.getVideoHeight();
         mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
@@ -129,7 +166,8 @@ public class LivePlayer implements View.OnClickListener,
 
     @Override
     public void onCompletion(IMediaPlayer iMediaPlayer) {
-        videoPlayEnd();
+        Log.d(TAG, "onCompletion()");
+//        videoPlayEnd();
     }
 
     @Override
@@ -176,6 +214,9 @@ public class LivePlayer implements View.OnClickListener,
     @Override
     public boolean onError(IMediaPlayer iMediaPlayer, int what, int extra) {
         switch (what) {
+            case KSYMediaPlayer.MEDIA_ERROR_IO:
+                Log.e(TAG, "网络连接超时" + what + ",extra:" + extra);
+                break;
             case KSYMediaPlayer.MEDIA_ERROR_UNKNOWN:
                 Log.e(TAG, "OnErrorListener, Error Unknown:" + what + ",extra:" + extra);
                 break;
@@ -183,7 +224,7 @@ public class LivePlayer implements View.OnClickListener,
                 Log.e(TAG, "OnErrorListener, Error:" + what + ",extra:" + extra);
         }
 
-        videoPlayEnd();
+//        videoPlayEnd();
         return false;
     }
 

@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
 
-
-    <include
+    <RelativeLayout
         android:id="@+id/streamer_window"
-        layout="@layout/view_streamer_window"/>
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
 
+        <include layout="@layout/view_streamer_window" />
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/player_window"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:visibility="gone">
+        android:layout_width="480px"
+        android:layout_height="640px"
+        android:layout_marginTop="700px">
 
-        <include
-            layout="@layout/view_player_window"/>
+        <include layout="@layout/view_player_window" />
     </RelativeLayout>
 
 </RelativeLayout>
