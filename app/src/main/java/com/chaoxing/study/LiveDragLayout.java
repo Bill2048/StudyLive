@@ -5,7 +5,6 @@ import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -46,48 +45,39 @@ public class LiveDragLayout extends RelativeLayout {
         mDragHelper = ViewDragHelper.create(this, 1.0f, new DragHelperCallback());
     }
 
+    private boolean mIntercepted;
+
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         if (dragEnable) {
-            if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-                startX = ev.getX();
-                startY = ev.getY();
-            }
             final int action = MotionEventCompat.getActionMasked(ev);
             if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
                 mDragHelper.cancel();
-                return false;
+                mIntercepted = false;
+            } else {
+                if (action == MotionEvent.ACTION_DOWN) {
+                    startX = ev.getX();
+                    startY = ev.getY();
+                }
+                if (startX > mDragView.getLeft() && startX < mDragView.getRight() && startY > mDragView.getTop() && startY < mDragView.getBottom()) {
+                    mIntercepted = mDragHelper.shouldInterceptTouchEvent(ev);
+                } else {
+                    mIntercepted = false;
+                }
             }
-            Log.d("TTAG", "startX :" + startX);
-            Log.d("TTAG", "left :" + mDragView.getLeft());
-            Log.d("TTAG", "right :" + mDragView.getRight());
-            Log.d("TTAG", "startY :" + startY);
-            Log.d("TTAG", "top :" + mDragView.getTop());
-            Log.d("TTAG", "bottom :" + mDragView.getBottom());
-//            if (startX > mDragView.getLeft() && startX < mDragView.getRight() && startY > mDragView.getTop() && startY < mDragView.getBottom()) {
-            return mDragHelper.shouldInterceptTouchEvent(ev);
-//            }
-//            return super.onInterceptTouchEvent(ev);
         } else {
-            return super.onInterceptTouchEvent(ev);
+            mIntercepted = super.onInterceptTouchEvent(ev);
         }
+        return mIntercepted;
     }
 
     private float startX = 0, startY = 0;
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
-            startX = ev.getX();
-            startY = ev.getY();
-        }
-        if (dragEnable) {
-
-//            if (startX > mDragView.getLeft() && startX < mDragView.getRight() && startY > mDragView.getTop() && startY < mDragView.getBottom()) {
+        if (dragEnable && mIntercepted) {
             mDragHelper.processTouchEvent(ev);
             return true;
-//            }
-//            return false;
         } else {
             return false;
         }
