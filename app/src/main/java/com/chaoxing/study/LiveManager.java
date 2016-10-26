@@ -74,7 +74,7 @@ public class LiveManager implements StreamerListener {
             mLiveStreamer.onResume();
         }
         if (mPulling) {
-
+            mLivePlayer.onResume();
         }
     }
 
@@ -83,12 +83,13 @@ public class LiveManager implements StreamerListener {
             mLiveStreamer.onPause();
         }
         if (mPulling) {
-
+            mLivePlayer.onPause();
         }
     }
 
     public void onDestroy() {
         mLiveStreamer.onDestroy();
+        mLivePlayer.onDestroy();
     }
 
 }

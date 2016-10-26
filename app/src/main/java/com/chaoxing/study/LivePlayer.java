@@ -1,6 +1,7 @@
 package com.chaoxing.study;
 
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
@@ -8,6 +9,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ksyun.media.player.IMediaPlayer;
 import com.ksyun.media.player.KSYMediaPlayer;
@@ -20,12 +22,14 @@ import java.io.IOException;
 
 public class LivePlayer implements View.OnClickListener,
         IMediaPlayer.OnBufferingUpdateListener,
-        IMediaPlayer.OnCompletionListener,
         IMediaPlayer.OnPreparedListener,
+        IMediaPlayer.OnCompletionListener,
         IMediaPlayer.OnInfoListener,
         IMediaPlayer.OnVideoSizeChangedListener,
         IMediaPlayer.OnErrorListener,
         IMediaPlayer.OnSeekCompleteListener {
+
+    private final static String TAG = LivePlayer.class.getSimpleName();
 
     private FragmentActivity mActivity;
     private View mPlayerWindow;
@@ -48,6 +52,9 @@ public class LivePlayer implements View.OnClickListener,
     private TextView mTvAnchor;
     private TextView mTvTimer;
     private ImageButton mIbtnZoom;
+
+    private int mVideoWidth;
+    private int mVideoHeight;
 
     public LivePlayer(FragmentActivity activity, View playerWindow) {
         mActivity = activity;
@@ -80,8 +87,8 @@ public class LivePlayer implements View.OnClickListener,
     private void initPlayer() {
         mMediaPlayer = new KSYMediaPlayer.Builder(mActivity).build();
         mMediaPlayer.setOnBufferingUpdateListener(this);
-        mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setOnPreparedListener(this);
+        mMediaPlayer.setOnCompletionListener(this);
         mMediaPlayer.setOnInfoListener(this);
         mMediaPlayer.setOnVideoSizeChangedListener(this);
         mMediaPlayer.setOnErrorListener(this);
@@ -110,37 +117,79 @@ public class LivePlayer implements View.OnClickListener,
 
     @Override
     public void onBufferingUpdate(IMediaPlayer iMediaPlayer, int i) {
-
-    }
-
-    @Override
-    public void onCompletion(IMediaPlayer iMediaPlayer) {
-
     }
 
     @Override
     public void onPrepared(IMediaPlayer iMediaPlayer) {
+        mVideoWidth = mMediaPlayer.getVideoWidth();
+        mVideoHeight = mMediaPlayer.getVideoHeight();
+        mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+        mMediaPlayer.start();
+    }
 
+    @Override
+    public void onCompletion(IMediaPlayer iMediaPlayer) {
+        videoPlayEnd();
     }
 
     @Override
     public boolean onInfo(IMediaPlayer iMediaPlayer, int i, int i1) {
+        switch (i) {
+            case KSYMediaPlayer.MEDIA_INFO_BUFFERING_START:
+                Log.d(TAG, "Buffering Start.");
+                break;
+            case KSYMediaPlayer.MEDIA_INFO_BUFFERING_END:
+                Log.d(TAG, "Buffering End.");
+                break;
+            case KSYMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START:
+                Toast.makeText(mActivity, "Audio Rendering Start", Toast.LENGTH_SHORT).show();
+                break;
+            case KSYMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START:
+                Toast.makeText(mActivity, "Video Rendering Start", Toast.LENGTH_SHORT).show();
+                break;
+            case KSYMediaPlayer.MEDIA_INFO_SUGGEST_RELOAD:
+                // Player find a new stream(video or audio), and we could reload the video.
+                if (mMediaPlayer != null)
+                    mMediaPlayer.reload(mMediaPlayer.getDataSource(), false);
+                break;
+            case KSYMediaPlayer.MEDIA_INFO_RELOADED:
+                Toast.makeText(mActivity, "Succeed to reload video.", Toast.LENGTH_SHORT).show();
+                Log.d(TAG, "Succeed to reload video.");
+                return false;
+        }
         return false;
     }
 
     @Override
-    public void onVideoSizeChanged(IMediaPlayer iMediaPlayer, int i, int i1, int i2, int i3) {
+    public void onVideoSizeChanged(IMediaPlayer mp, int width, int height, int sarNum, int sarDen) {
+        if (mVideoWidth > 0 && mVideoHeight > 0) {
+            if (width != mVideoWidth || height != mVideoHeight) {
+                mVideoWidth = mp.getVideoWidth();
+                mVideoHeight = mp.getVideoHeight();
 
+                if (mMediaPlayer != null)
+                    mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+            }
+        }
     }
 
     @Override
-    public boolean onError(IMediaPlayer iMediaPlayer, int i, int i1) {
+    public boolean onError(IMediaPlayer iMediaPlayer, int what, int extra) {
+        switch (what) {
+            case KSYMediaPlayer.MEDIA_ERROR_UNKNOWN:
+                Log.e(TAG, "OnErrorListener, Error Unknown:" + what + ",extra:" + extra);
+                break;
+            default:
+                Log.e(TAG, "OnErrorListener, Error:" + what + ",extra:" + extra);
+        }
+
+        videoPlayEnd();
         return false;
     }
 
     @Override
     public void onSeekComplete(IMediaPlayer iMediaPlayer) {
-
+        Log.e(TAG, "onSeekComplete()");
     }
 
     public void show() {
@@ -151,13 +200,32 @@ public class LivePlayer implements View.OnClickListener,
         mPlayerWindow.setVisibility(View.GONE);
     }
 
+    private void videoPlayEnd() {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
+
+    }
+
+    private boolean mPause;
+
     public void onResume() {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.start();
+            mPause = false;
+        }
     }
 
     public void onPause() {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.pause();
+            mPause = true;
+        }
     }
 
     public void onDestroy() {
+        mSvPlayer = null;
     }
 
 }
