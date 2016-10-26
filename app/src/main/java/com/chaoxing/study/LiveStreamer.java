@@ -35,11 +35,10 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     private FragmentActivity mActivity;
     private View mStreamerWindow;
 
+    private LiveDragLayout mDragLayout;
     private View mStreamerContent;
     private GLSurfaceView mSvPreviewer;
     private KSYStreamer mStreamer;
-
-    private View mDebugPanel;
 
     private View mFocusPanel;
     private View mStatusPanel;
@@ -64,6 +63,12 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         SMALL,
     }
 
+    public enum PushStatus {
+        STOP,
+        PUSHING,
+        PAUSE,
+    }
+
     private boolean mRecording;
     private boolean mInitiated;
 
@@ -72,13 +77,15 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     public LiveStreamer(FragmentActivity activity, View streamerWindow) {
         mActivity = activity;
         mStreamerWindow = streamerWindow;
-        initDebug();
         initView();
         initStreamer();
     }
 
     private void initView() {
+        mDragLayout = (LiveDragLayout) mStreamerWindow.findViewById(R.id.drag_layout);
+
         mStreamerContent = mStreamerWindow.findViewById(R.id.streamer_content);
+        mDragLayout.setDragView(mStreamerContent);
 
         mSvPreviewer = (GLSurfaceView) mStreamerWindow.findViewById(R.id.sv_previewer);
 
@@ -116,21 +123,11 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         setWindowStyle(WindowStyle.NORMAL);
     }
 
-    private int land;
-
-    private void initDebug() {
-        mDebugPanel = mStreamerWindow.findViewById(R.id.debug_panel);
-        if (BuildConfig.DEBUG) {
-            mDebugPanel.setVisibility(View.VISIBLE);
-        }
-    }
-
     @Override
     public void onClick(View view) {
         int id = view.getId();
         if (id == R.id.ibtn_close) {
             stopStream();
-            mStreamer.stopCameraPreview();
         } else if (id == R.id.ibtn_switch_camera) {
             switchCamera();
         } else if (id == R.id.ibtn_zoom) {
@@ -326,9 +323,11 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     }
 
     public void stopStream() {
+        mStreamer.stopCameraPreview();
         mStreamer.stopStream();
         mChTimer.stop();
         mRecording = false;
+        streamerListener.onPushStatusChanged(PushStatus.PUSHING);
     }
 
     private void switchCamera() {
@@ -384,6 +383,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
             mSvPreviewer.setLayoutParams(lpSv);
 
             toggleControlPanel(true);
+            mDragLayout.setDragEnable(false);
         } else if (style.equals(WindowStyle.SMALL)) {
             ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
             lpWindow.width = 300;
@@ -400,6 +400,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
             mSvPreviewer.setLayoutParams(lpSv);
 
             toggleControlPanel(false);
+            mDragLayout.setDragEnable(true);
         } else {
             ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
             lpWindow.width = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -416,9 +417,8 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
             mSvPreviewer.setLayoutParams(lpSv);
 
             toggleControlPanel(true);
+            mDragLayout.setDragEnable(false);
         }
-
-        streamerListener.onWindowStyleChanged(mWindowStyle);
     }
 
     public void onResume() {

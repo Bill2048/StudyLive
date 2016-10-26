@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-    <com.chaoxing.study.LiveDragLayout
-        android:id="@+id/drag_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+
+    <include
+        android:id="@+id/streamer_window"
+        layout="@layout/view_streamer_window"/>
+
+
+    <RelativeLayout
+        android:id="@+id/player_window"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:visibility="gone">
 
         <include
-            android:id="@+id/streamer_window"
-            layout="@layout/view_streamer_window" />
+            layout="@layout/view_player_window"/>
+    </RelativeLayout>
 
-        <include
-            android:id="@+id/player_window"
-            layout="@layout/view_player_window" />
-    </com.chaoxing.study.LiveDragLayout>
-
-</FrameLayout>
+</RelativeLayout>

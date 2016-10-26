@@ -2,8 +2,9 @@ package com.chaoxing.study;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.Toast;
 
 public class LiveActivity extends FragmentActivity {
 
@@ -30,10 +31,12 @@ public class LiveActivity extends FragmentActivity {
             }
         });
 
-        findViewById(R.id.debug_btn).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.iv_launcher).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.d("TAG", "onclick");
+                Toast toast = Toast.makeText(LiveActivity.this, "Hi~", Toast.LENGTH_SHORT);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
             }
         });
     }

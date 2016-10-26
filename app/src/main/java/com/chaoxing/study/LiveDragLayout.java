@@ -2,17 +2,19 @@ package com.chaoxing.study;
 
 import android.content.Context;
 import android.support.v4.view.MotionEventCompat;
+import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 /**
  * Created by huwei on 2016/10/24.
  */
 
-public class LiveDragLayout extends ViewGroup {
+public class LiveDragLayout extends RelativeLayout {
 
     private boolean dragEnable;
 
@@ -47,22 +49,45 @@ public class LiveDragLayout extends ViewGroup {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         if (dragEnable) {
+            if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+                startX = ev.getX();
+                startY = ev.getY();
+            }
             final int action = MotionEventCompat.getActionMasked(ev);
             if (action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_UP) {
                 mDragHelper.cancel();
                 return false;
             }
+            Log.d("TTAG", "startX :" + startX);
+            Log.d("TTAG", "left :" + mDragView.getLeft());
+            Log.d("TTAG", "right :" + mDragView.getRight());
+            Log.d("TTAG", "startY :" + startY);
+            Log.d("TTAG", "top :" + mDragView.getTop());
+            Log.d("TTAG", "bottom :" + mDragView.getBottom());
+//            if (startX > mDragView.getLeft() && startX < mDragView.getRight() && startY > mDragView.getTop() && startY < mDragView.getBottom()) {
             return mDragHelper.shouldInterceptTouchEvent(ev);
+//            }
+//            return super.onInterceptTouchEvent(ev);
         } else {
             return super.onInterceptTouchEvent(ev);
         }
     }
 
+    private float startX = 0, startY = 0;
+
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            startX = ev.getX();
+            startY = ev.getY();
+        }
         if (dragEnable) {
+
+//            if (startX > mDragView.getLeft() && startX < mDragView.getRight() && startY > mDragView.getTop() && startY < mDragView.getBottom()) {
             mDragHelper.processTouchEvent(ev);
             return true;
+//            }
+//            return false;
         } else {
             return false;
         }
@@ -108,57 +133,11 @@ public class LiveDragLayout extends ViewGroup {
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int measureWidth = measureWidth(widthMeasureSpec);
-        int measureHeight = measureHeight(heightMeasureSpec);
-        measureChildren(widthMeasureSpec, heightMeasureSpec);
-        setMeasuredDimension(measureWidth, measureHeight);
-    }
-
-    private int measureWidth(int pWidthMeasureSpec) {
-        int result = 0;
-
-        int widthMode = MeasureSpec.getMode(pWidthMeasureSpec);
-        int widthSize = MeasureSpec.getSize(pWidthMeasureSpec);
-
-        switch (widthMode) {
-            case MeasureSpec.AT_MOST:
-            case MeasureSpec.EXACTLY:
-                result = widthSize;
-                break;
-        }
-        return result;
-    }
-
-    private int measureHeight(int pHeightMeasureSpec) {
-        int result = 0;
-
-        int heightMode = MeasureSpec.getMode(pHeightMeasureSpec);
-        int heightSize = MeasureSpec.getSize(pHeightMeasureSpec);
-
-        switch (heightMode) {
-            case MeasureSpec.AT_MOST:
-            case MeasureSpec.EXACTLY:
-                result = heightSize;
-                break;
-        }
-        return result;
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        int mTotalHeight = 0;
-        int childCount = getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            View childView = getChildAt(i);
-
-            int measuredWidth = childView.getMeasuredWidth();
-            int measureHeight = childView.getMeasuredHeight();
-
-            childView.layout(l, mTotalHeight, measuredWidth, mTotalHeight + measureHeight);
-
-            mTotalHeight += measureHeight;
+    public void computeScroll() {
+        super.computeScroll();
+        if (mDragHelper.continueSettling(true)) {
+            ViewCompat.postInvalidateOnAnimation(this);
         }
     }
+
 }

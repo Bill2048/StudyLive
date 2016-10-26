@@ -8,6 +8,6 @@ public interface StreamerListener {
 
     void onInitiated();
 
-    void onWindowStyleChanged(LiveStreamer.WindowStyle style);
+    void onPushStatusChanged(LiveStreamer.PushStatus status);
 
 }

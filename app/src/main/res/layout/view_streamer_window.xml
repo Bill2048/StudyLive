@@ -1,176 +1,183 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-    <RelativeLayout
-        android:id="@+id/streamer_content"
+    <com.chaoxing.study.LiveDragLayout
+        android:id="@+id/drag_layout"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/black">
-
-        <android.opengl.GLSurfaceView
-            android:id="@+id/sv_previewer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerInParent="true"/>
-
-        <View
-            android:id="@+id/focus_panel"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+        android:layout_height="match_parent">
 
         <RelativeLayout
-            android:id="@+id/status_panel"
+            android:id="@+id/streamer_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
             android:background="@android:color/black">
 
-            <ProgressBar
-                android:id="@+id/pb_loading"
-                style="@android:style/Widget.ProgressBar.Small"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <android.opengl.GLSurfaceView
+                android:id="@+id/sv_previewer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
                 android:layout_centerInParent="true"/>
 
-            <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true">
-
-                <TextView
-                    android:id="@+id/tv_status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"
-                    tools:text="直播尚未开始"/>
-
-                <Button
-                    android:id="@+id/btn_status_operate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tv_status"
-                    android:layout_centerHorizontal="true"
-                    android:layout_marginTop="8dp"
-                    android:background="@drawable/bg_border_white"
-                    android:paddingBottom="6dp"
-                    android:paddingLeft="24dp"
-                    android:paddingRight="24dp"
-                    android:paddingTop="6dp"
-                    android:text="关闭"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"/>
-            </RelativeLayout>
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/control_panel"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <RelativeLayout
-                android:id="@+id/toolbar"
+            <View
+                android:id="@+id/focus_panel"
                 android:layout_width="match_parent"
-                android:layout_height="42dp"
-                android:background="#33000000">
+                android:layout_height="match_parent"/>
 
-                <ImageButton
-                    android:id="@+id/ibtn_close"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_centerVertical="true"
-                    android:background="@android:color/transparent"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:src="@drawable/ic_clear_white_24dp"
-                    android:textColor="@android:color/white"/>
+            <RelativeLayout
+                android:id="@+id/status_panel"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/black">
 
-                <TextView
-                    android:id="@+id/tv_title"
+                <ProgressBar
+                    android:id="@+id/pb_loading"
+                    style="@android:style/Widget.ProgressBar.Small"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:text="直播"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"/>
+                    android:layout_centerInParent="true"/>
 
-                <ImageButton
-                    android:id="@+id/ibtn_switch_camera"
+                <RelativeLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_alignParentRight="true"
-                    android:background="@android:color/transparent"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:src="@drawable/recorder_rotate_icon"/>
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true">
+
+                    <TextView
+                        android:id="@+id/tv_status"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        tools:text="直播尚未开始"/>
+
+                    <Button
+                        android:id="@+id/btn_status_operate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/tv_status"
+                        android:layout_centerHorizontal="true"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_border_white"
+                        android:paddingBottom="6dp"
+                        android:paddingLeft="24dp"
+                        android:paddingRight="24dp"
+                        android:paddingTop="6dp"
+                        android:text="关闭"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"/>
+                </RelativeLayout>
+
             </RelativeLayout>
 
             <RelativeLayout
-                android:id="@+id/bottom_bar"
+                android:id="@+id/control_panel"
                 android:layout_width="match_parent"
-                android:layout_height="42dp"
-                android:layout_alignParentBottom="true"
-                android:background="#33000000">
+                android:layout_height="match_parent">
 
-                <TextView
-                    android:id="@+id/tv_anchor"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_marginLeft="8dp"
-                    android:maxLines="1"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"
-                    tools:text="主播名字"/>
+                <RelativeLayout
+                    android:id="@+id/toolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:background="#33000000">
 
-                <Chronometer
-                    android:id="@+id/ch_timer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_gravity="center"
-                    android:layout_marginLeft="8dp"
-                    android:layout_toRightOf="@+id/tv_anchor"
-                    android:format="%s"
-                    android:gravity="center"
-                    android:textColor="@android:color/white"
-                    android:textSize="14sp"/>
+                    <ImageButton
+                        android:id="@+id/ibtn_close"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_centerVertical="true"
+                        android:background="@android:color/transparent"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="8dp"
+                        android:src="@drawable/ic_clear_white_24dp"
+                        android:textColor="@android:color/white"/>
 
-                <TextView
-                    android:id="@+id/tv_viewer_count"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:layout_marginRight="8dp"
-                    android:layout_toLeftOf="@+id/ibtn_zoom"
-                    android:textColor="#A5C6FF"
-                    android:textSize="14sp"
-                    tools:text="已看:25/45"/>
+                    <TextView
+                        android:id="@+id/tv_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:text="直播"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"/>
 
-                <ImageButton
-                    android:id="@+id/ibtn_zoom"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_alignParentRight="true"
-                    android:background="@android:color/transparent"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:src="@drawable/ic_zoom_out_map_white_24dp"/>
+                    <ImageButton
+                        android:id="@+id/ibtn_switch_camera"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_alignParentRight="true"
+                        android:background="@android:color/transparent"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="8dp"
+                        android:src="@drawable/recorder_rotate_icon"/>
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/bottom_bar"
+                    android:layout_width="match_parent"
+                    android:layout_height="42dp"
+                    android:layout_alignParentBottom="true"
+                    android:background="#33000000">
+
+                    <TextView
+                        android:id="@+id/tv_anchor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="8dp"
+                        android:maxLines="1"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        tools:text="主播名字"/>
+
+                    <Chronometer
+                        android:id="@+id/ch_timer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_gravity="center"
+                        android:layout_marginLeft="8dp"
+                        android:layout_toRightOf="@+id/tv_anchor"
+                        android:format="%s"
+                        android:gravity="center"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"/>
+
+                    <TextView
+                        android:id="@+id/tv_viewer_count"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_marginRight="8dp"
+                        android:layout_toLeftOf="@+id/ibtn_zoom"
+                        android:textColor="#A5C6FF"
+                        android:textSize="14sp"
+                        tools:text="已看:25/45"/>
+
+                    <ImageButton
+                        android:id="@+id/ibtn_zoom"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_alignParentRight="true"
+                        android:background="@android:color/transparent"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="8dp"
+                        android:src="@drawable/ic_zoom_out_map_white_24dp"/>
+                </RelativeLayout>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/debug_panel"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="46dp"
+                android:layout_marginTop="46dp"
+                android:visibility="gone">
+
             </RelativeLayout>
         </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/debug_panel"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="46dp"
-            android:layout_marginTop="46dp"
-            android:visibility="gone">
-
-        </RelativeLayout>
-    </RelativeLayout>
-</FrameLayout>
+    </com.chaoxing.study.LiveDragLayout>
+</RelativeLayout>
