@@ -102,8 +102,8 @@ public class LivePlayer implements View.OnClickListener,
         mMediaPlayer.setBufferTimeMax(3);
         mMediaPlayer.setTimeout(5, 30);
         try {
-//            mMediaPlayer.setDataSource("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVELI1557281DEC6");
-            mMediaPlayer.setDataSource("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVEWP1559FFCFA92");
+//            mMediaPlayer.setDataSource("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVEWP1559FFCFA92");
+            mMediaPlayer.setDataSource("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVELI1557281DEC6");
             mMediaPlayer.prepareAsync();
         } catch (IOException e) {
             e.printStackTrace();
