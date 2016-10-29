@@ -1,16 +1,16 @@
 package com.chaoxing.study;
 
-import android.support.v4.app.FragmentActivity;
+import android.content.Context;
+import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.RelativeLayout;
 
 /**
  * Created by huwei on 2016/10/23.
  */
 
-public class LiveManager implements StreamerListener {
-
-    private FragmentActivity mActivity;
-    private View mLiveContent;
+public class LiveController extends RelativeLayout implements StreamerListener {
 
     private LiveStreamer mLiveStreamer;
     private boolean mPushing;
@@ -18,28 +18,41 @@ public class LiveManager implements StreamerListener {
     private LivePlayer mLivePlayer;
     private boolean mPulling;
 
-    public LiveManager(FragmentActivity activity, View liveContent) {
-        mActivity = activity;
-        mLiveContent = liveContent;
-        mLiveContent.setVisibility(View.GONE);
+    public LiveController(Context context) {
+        this(context, null);
+    }
+
+    public LiveController(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    public LiveController(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        init();
+    }
+
+    private void init() {
+        LayoutInflater.from(getContext()).inflate(R.layout.view_live_content, this);
         initStreamer();
         initPlayer();
     }
 
     private void initStreamer() {
-        mLiveStreamer = new LiveStreamer(mActivity, mLiveContent.findViewById(R.id.streamer_window));
+        mLiveStreamer = new LiveStreamer(getContext(), findViewById(R.id.streamer_window));
         mLiveStreamer.setStreamerListener(this);
+        mLiveStreamer.hide();
     }
 
     private void initPlayer() {
-        mLivePlayer = new LivePlayer(mActivity, mLiveContent.findViewById(R.id.player_window));
+        mLivePlayer = new LivePlayer(getContext(), findViewById(R.id.player_window));
+        mLivePlayer.hide();
     }
 
     public void push() {
         mPushing = true;
         mLivePlayer.hide();
         mLiveStreamer.show();
-        mLiveContent.setVisibility(View.VISIBLE);
+        setVisibility(View.VISIBLE);
         if (mLiveStreamer.isInitiated()) {
             mLiveStreamer.startStream();
         } else {
@@ -51,7 +64,7 @@ public class LiveManager implements StreamerListener {
         mPulling = true;
 //        mLiveStreamer.hide();
         mLivePlayer.show();
-        mLiveContent.setVisibility(View.VISIBLE);
+        setVisibility(View.VISIBLE);
         mLivePlayer.prepare();
     }
 
@@ -97,4 +110,8 @@ public class LiveManager implements StreamerListener {
         mLivePlayer.onDestroy();
     }
 
+    @Override
+    public boolean isInEditMode() {
+        return true;
+    }
 }

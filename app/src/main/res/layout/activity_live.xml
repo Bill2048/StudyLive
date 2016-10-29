@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <RelativeLayout
         android:id="@+id/debug_control_panel"
@@ -12,16 +12,22 @@
             android:id="@+id/debug_btn_push"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="PUSH"/>
+            android:text="PUSH" />
 
         <Button
             android:id="@+id/debug_btn_pull"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            android:text="PULL"/>
+            android:text="PULL" />
 
     </RelativeLayout>
+
+    <com.chaoxing.study.LiveController
+        android:id="@+id/live_controller"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/debug_control_panel" />
 
     <ImageView
         android:id="@+id/iv_launcher"
@@ -29,16 +35,6 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:clickable="true"
-        android:src="@drawable/ic_launcher"/>
+        android:src="@drawable/ic_launcher" />
 
-    <RelativeLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/debug_control_panel">
-
-        <include
-            android:id="@+id/live_content"
-            layout="@layout/view_live_content"/>
-
-    </RelativeLayout>
 </RelativeLayout>

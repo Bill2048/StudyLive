@@ -8,26 +8,27 @@ import android.widget.Toast;
 
 public class LiveActivity extends FragmentActivity {
 
-    private LiveManager mLiveManager;
+    private LiveController mLiveController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_live);
 
-        mLiveManager = new LiveManager(this, findViewById(R.id.live_content));
+        mLiveController = (LiveController) findViewById(R.id.live_controller);
+
 
         findViewById(R.id.debug_btn_push).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mLiveManager.push();
+                mLiveController.push();
             }
         });
 
         findViewById(R.id.debug_btn_pull).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mLiveManager.pull();
+                mLiveController.pull();
             }
         });
 
@@ -44,18 +45,18 @@ public class LiveActivity extends FragmentActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        mLiveManager.onResume();
+        mLiveController.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mLiveManager.onPause();
+        mLiveController.onPause();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mLiveManager.onDestroy();
+        mLiveController.onDestroy();
     }
 }

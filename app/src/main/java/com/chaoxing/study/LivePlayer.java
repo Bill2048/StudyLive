@@ -1,6 +1,6 @@
 package com.chaoxing.study;
 
-import android.support.v4.app.FragmentActivity;
+import android.content.Context;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -32,7 +32,7 @@ public class LivePlayer implements View.OnClickListener,
 
     private final static String TAG = LivePlayer.class.getSimpleName();
 
-    private FragmentActivity mActivity;
+    private Context mContext;
     private View mPlayerWindow;
 
     private KSYMediaPlayer mMediaPlayer;
@@ -58,8 +58,8 @@ public class LivePlayer implements View.OnClickListener,
     private int mVideoWidth;
     private int mVideoHeight;
 
-    public LivePlayer(FragmentActivity activity, View playerWindow) {
-        mActivity = activity;
+    public LivePlayer(Context context, View playerWindow) {
+        mContext = context;
         mPlayerWindow = playerWindow;
         initView();
         initPlayer();
@@ -90,7 +90,7 @@ public class LivePlayer implements View.OnClickListener,
     }
 
     private void initPlayer() {
-        mMediaPlayer = new KSYMediaPlayer.Builder(mActivity).build();
+        mMediaPlayer = new KSYMediaPlayer.Builder(mContext).build();
         mMediaPlayer.setOnBufferingUpdateListener(this);
         mMediaPlayer.setOnPreparedListener(this);
         mMediaPlayer.setOnCompletionListener(this);
@@ -102,8 +102,8 @@ public class LivePlayer implements View.OnClickListener,
         mMediaPlayer.setBufferTimeMax(3);
         mMediaPlayer.setTimeout(5, 30);
         try {
-//            mMediaPlayer.setDataSource("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVELI1557281DEC6");
-            mMediaPlayer.setDataSource("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVEWP1559FFCFA92");
+            mMediaPlayer.setDataSource("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVELI1557281DEC6");
+//            mMediaPlayer.setDataSource("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVEWP1559FFCFA92");
             mMediaPlayer.prepareAsync();
         } catch (IOException e) {
             e.printStackTrace();
@@ -129,7 +129,7 @@ public class LivePlayer implements View.OnClickListener,
     private final SurfaceHolder.Callback mSurfaceCallback = new SurfaceHolder.Callback() {
         @Override
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            if(mMediaPlayer != null && mMediaPlayer.isPlaying())
+            if (mMediaPlayer != null && mMediaPlayer.isPlaying())
                 mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
         }
 
@@ -180,10 +180,10 @@ public class LivePlayer implements View.OnClickListener,
                 Log.d(TAG, "Buffering End.");
                 break;
             case KSYMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START:
-                Toast.makeText(mActivity, "Audio Rendering Start", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "Audio Rendering Start", Toast.LENGTH_SHORT).show();
                 break;
             case KSYMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START:
-                Toast.makeText(mActivity, "Video Rendering Start", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "Video Rendering Start", Toast.LENGTH_SHORT).show();
                 break;
             case KSYMediaPlayer.MEDIA_INFO_SUGGEST_RELOAD:
                 // Player find a new stream(video or audio), and we could reload the video.
@@ -191,7 +191,7 @@ public class LivePlayer implements View.OnClickListener,
                     mMediaPlayer.reload(mMediaPlayer.getDataSource(), false);
                 break;
             case KSYMediaPlayer.MEDIA_INFO_RELOADED:
-                Toast.makeText(mActivity, "Succeed to reload video.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "Succeed to reload video.", Toast.LENGTH_SHORT).show();
                 Log.d(TAG, "Succeed to reload video.");
                 return false;
         }

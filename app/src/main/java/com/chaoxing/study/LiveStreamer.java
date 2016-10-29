@@ -1,15 +1,17 @@
 package com.chaoxing.study;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Configuration;
-import android.graphics.Rect;
 import android.opengl.GLSurfaceView;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.ImageButton;
@@ -32,7 +34,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
     private Handler mHandler = new Handler();
 
-    private FragmentActivity mActivity;
+    private Context mContext;
     private View mStreamerWindow;
 
     private LiveDragLayout mDragLayout;
@@ -74,8 +76,10 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
     private StreamerListener streamerListener;
 
-    public LiveStreamer(FragmentActivity activity, View streamerWindow) {
-        mActivity = activity;
+    private boolean mAnimating;
+
+    public LiveStreamer(Context context, View streamerWindow) {
+        mContext = context;
         mStreamerWindow = streamerWindow;
         initView();
         initStreamer();
@@ -90,16 +94,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         mSvPreviewer = (GLSurfaceView) mStreamerWindow.findViewById(R.id.sv_previewer);
 
         mFocusPanel = mStreamerWindow.findViewById(R.id.focus_panel);
-        mFocusPanel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mWindowStyle.equals(WindowStyle.SMALL)) {
-                    zoomWindow();
-                } else {
-                    toggleControlPanel();
-                }
-            }
-        });
+        mFocusPanel.setOnClickListener(this);
 
         mStatusPanel = mStreamerWindow.findViewById(R.id.status_panel);
         mStatusPanel.setVisibility(View.GONE);
@@ -123,8 +118,14 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         setWindowStyle(WindowStyle.NORMAL);
     }
 
+    private long mLastClick;
+
     @Override
     public void onClick(View view) {
+        if (System.currentTimeMillis() - mLastClick <= 500) {
+            return;
+        }
+        mLastClick = System.currentTimeMillis();
         int id = view.getId();
         if (id == R.id.ibtn_close) {
             stopStream();
@@ -132,6 +133,14 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
             switchCamera();
         } else if (id == R.id.ibtn_zoom) {
             zoomWindow();
+        } else if (id == R.id.focus_panel) {
+            if (!mAnimating) {
+                if (mWindowStyle.equals(WindowStyle.SMALL)) {
+                    zoomWindow();
+                } else {
+                    toggleControlPanel();
+                }
+            }
         }
     }
 
@@ -151,18 +160,52 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     }
 
     private void toggleControlPanel(boolean toggle) {
+        toggleControlPanel(toggle, true);
+    }
+
+    private void toggleControlPanel(boolean toggle, boolean animation) {
         mHandler.removeCallbacks(mHideControlPanelRunnable);
+        final int visible;
+        float alpha;
         if (toggle) {
             mHandler.postDelayed(mHideControlPanelRunnable, 5000);
-            mControlPanel.setVisibility(View.VISIBLE);
+            visible = View.VISIBLE;
+            alpha = 0f;
         } else {
-            mControlPanel.setVisibility(View.GONE);
+            visible = View.GONE;
+            alpha = 1f;
+        }
+        if ((toggle && mControlPanel.getVisibility() == View.VISIBLE) || (!toggle && mControlPanel.getVisibility() == View.GONE)) {
+            return;
+        }
+        if (animation) {
+            AlphaAnimation alphaAnimation = new AlphaAnimation(alpha, alpha == 0f ? 1f : 0f);
+            alphaAnimation.setDuration(300);
+            alphaAnimation.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    mControlPanel.setVisibility(visible);
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+
+                }
+            });
+            mControlPanel.startAnimation(alphaAnimation);
+        } else {
+            mControlPanel.setVisibility(visible);
         }
     }
 
     private void initStreamer() {
         // 创建KSYStreamer实例
-        mStreamer = new KSYStreamer(mActivity);
+        mStreamer = new KSYStreamer(mContext);
         // 设置预览View
         mStreamer.setDisplayPreview(mSvPreviewer);
         // 设置推流url（需要向相关人员申请，测试地址并不稳定！）
@@ -190,7 +233,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         // StreamerConstants.ENCODE_METHOD_HARDWARE
         mStreamer.setEncodeMethod(StreamerConstants.ENCODE_METHOD_SOFTWARE);
         // 设置屏幕的旋转角度，支持 0, 90, 180, 270
-        mStreamer.setRotateDegrees(mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? 0 : 90);
+        mStreamer.setRotateDegrees(mContext.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ? 0 : 90);
         // 开启推流统计功能
         mStreamer.setEnableStreamStatModule(true);
         mStreamer.setOnInfoListener(this);
@@ -284,7 +327,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
             case StreamerConstants.KSY_STREAMER_CAMERA_ERROR_START_FAILED:  // 打开摄像头失败
             case StreamerConstants.KSY_STREAMER_AUDIO_RECORDER_ERROR_START_FAILED:  // 录音开启失败
             case StreamerConstants.KSY_STREAMER_AUDIO_RECORDER_ERROR_UNKNOWN:  // 录音开启未知错误
-                Toast.makeText(mActivity, "[" + what + "] " + "推流失败", Toast.LENGTH_SHORT).show();
+                Toast.makeText(mContext, "[" + what + "] " + "推流失败", Toast.LENGTH_SHORT).show();
                 stopStream();
                 break;
             case StreamerConstants.KSY_STREAMER_CAMERA_ERROR_SERVER_DIED:  // 系统Camera服务进程退出
@@ -366,62 +409,130 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     }
 
     public void setWindowStyle(WindowStyle style) {
-        mWindowStyle = style;
         if (style.equals(WindowStyle.LARGE)) {
-            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
-            lpWindow.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            lpWindow.height = ViewGroup.LayoutParams.MATCH_PARENT;
-            lpWindow.leftMargin = 0;
-            lpWindow.topMargin = 0;
-            lpWindow.rightMargin = 0;
-            lpWindow.bottomMargin = 0;
-            mStreamerContent.setLayoutParams(lpWindow);
+            ValueAnimator animator = ValueAnimator.ofFloat(mStreamerContent.getHeight(), mStreamerWindow.getHeight());
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float value = (float) animation.getAnimatedValue();
+                    float scale = value / mStreamerContent.getHeight();
 
-            Rect appRect = new Rect();
-            mActivity.getWindow().getDecorView().getWindowVisibleDisplayFrame(appRect);
-            int delta = Math.min(appRect.width() / 3, appRect.height() / 4);
-            ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
-            lpSv.width = delta * 3;
-            lpSv.height = delta * 4;
-            mSvPreviewer.setLayoutParams(lpSv);
+                    mStreamerContent.setScaleY(scale);
+                    mStreamerContent.setTranslationY((value - mStreamerContent.getHeight()) / 2);
 
-            toggleControlPanel(true);
-            mDragLayout.setDragEnable(false);
+                    mSvPreviewer.setScaleX(scale);
+                }
+            });
+            animator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    toggleControlPanel(false, false);
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    ViewGroup.LayoutParams lpContent = mStreamerContent.getLayoutParams();
+                    lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                    lpContent.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                    mStreamerContent.setLayoutParams(lpContent);
+
+                    int delta = Math.min(mStreamerWindow.getWidth() / 3, mStreamerWindow.getHeight() / 4);
+                    ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
+                    lpSv.width = delta * 3;
+                    lpSv.height = delta * 4;
+                    mSvPreviewer.setLayoutParams(lpSv);
+
+                    mDragLayout.setDragEnable(false);
+
+                    mStreamerContent.setScaleY(1);
+                    mStreamerContent.setTranslationY(0);
+
+                    mSvPreviewer.setScaleX(1);
+
+                    toggleControlPanel(true, false);
+
+                    mAnimating = false;
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+                }
+            });
+            animator.setDuration(300);
+            animator.setTarget(mStreamerContent);
+            animator.start();
         } else if (style.equals(WindowStyle.SMALL)) {
-            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
-            lpWindow.width = 300;
-            lpWindow.height = 400;
-            lpWindow.leftMargin = 0;
-            lpWindow.topMargin = dp2px(mActivity, 50);
-            lpWindow.rightMargin = 0;
-            lpWindow.bottomMargin = 0;
-            mStreamerContent.setLayoutParams(lpWindow);
+            ValueAnimator animator = ValueAnimator.ofFloat(mStreamerContent.getHeight(), 400f);
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float value = (float) animation.getAnimatedValue();
+                    float scale = value / mStreamerContent.getHeight();
 
-            ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
-            lpSv.width = 300;
-            lpSv.height = 400;
-            mSvPreviewer.setLayoutParams(lpSv);
+                    mStreamerContent.setScaleX(scale);
+                    mStreamerContent.setScaleY(scale);
+                    mStreamerContent.setTranslationX(-(scale * mStreamerContent.getWidth() - mStreamerContent.getWidth()) / 2);
+                    mStreamerContent.setTranslationY((value - mStreamerContent.getHeight()) / 2);
+                }
+            });
+            animator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    mAnimating = true;
+                    toggleControlPanel(false, false);
+                    mDragLayout.setDragEnable(true);
+                }
 
-            toggleControlPanel(false);
-            mDragLayout.setDragEnable(true);
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    float scale = 400f / mStreamerContent.getHeight();
+                    ViewGroup.MarginLayoutParams lpContent = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
+                    lpContent.width = (int) (mStreamerContent.getWidth() * scale);
+                    lpContent.height = 400;
+                    mStreamerContent.setLayoutParams(lpContent);
+                    mStreamerContent.setScaleX(1);
+                    mStreamerContent.setScaleY(1);
+                    mStreamerContent.setTranslationX(0);
+                    mStreamerContent.setTranslationY(0);
+
+                    ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
+                    lpSv.width = 300;
+                    lpSv.height = 400;
+                    mSvPreviewer.setLayoutParams(lpSv);
+
+                    mAnimating = false;
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+                }
+            });
+            animator.setDuration(300);
+            animator.setTarget(mStreamerContent);
+            animator.start();
         } else {
-            ViewGroup.MarginLayoutParams lpWindow = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
-            lpWindow.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            lpWindow.height = 640;
-            lpWindow.leftMargin = 0;
-            lpWindow.topMargin = 0;
-            lpWindow.rightMargin = 0;
-            lpWindow.bottomMargin = 0;
-            mStreamerContent.setLayoutParams(lpWindow);
+            ViewGroup.MarginLayoutParams lpContent = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
+            lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            lpContent.height = 640;
+            mStreamerContent.setLayoutParams(lpContent);
 
             ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
             lpSv.width = 480;
             lpSv.height = 640;
             mSvPreviewer.setLayoutParams(lpSv);
 
-            toggleControlPanel(true);
+            toggleControlPanel(true, false);
             mDragLayout.setDragEnable(false);
         }
+        mWindowStyle = style;
     }
 
     public void onResume() {

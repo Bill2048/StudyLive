@@ -3,21 +3,27 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content">
 
-    <RelativeLayout
-        android:id="@+id/streamer_window"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <include layout="@layout/view_streamer_window" />
-    </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/streamer_window"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.0">
 
-    <RelativeLayout
-        android:id="@+id/player_window"
-        android:layout_width="480px"
-        android:layout_height="640px"
-        android:layout_marginTop="700px">
+            <include layout="@layout/view_streamer_window" />
+        </RelativeLayout>
 
-        <include layout="@layout/view_player_window" />
-    </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/player_window"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.0">
 
+            <include layout="@layout/view_player_window" />
+        </RelativeLayout>
+    </LinearLayout>
 </RelativeLayout>
