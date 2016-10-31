@@ -59,6 +59,9 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     private TextView mTvViewerCount;
     private ImageButton mIbtnZoom;
 
+    public final int[] WINDOW_SIZE_NORMAL = new int[]{480, 640};
+    public final int[] WINDOW_SIZE_SMALL = new int[]{360, 480};
+
     public enum WindowStyle {
         NORMAL,
         LARGE,
@@ -122,7 +125,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
     @Override
     public void onClick(View view) {
-        if (System.currentTimeMillis() - mLastClick <= 500) {
+        if (System.currentTimeMillis() - mLastClick <= 400) {
             return;
         }
         mLastClick = System.currentTimeMillis();
@@ -420,7 +423,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
                     mStreamerContent.setScaleY(scale);
                     mStreamerContent.setTranslationY((value - mStreamerContent.getHeight()) / 2);
 
-                    mSvPreviewer.setScaleX(scale);
+//                    mSvPreviewer.setScaleX(scale);
                 }
             });
             animator.addListener(new Animator.AnimatorListener() {
@@ -431,6 +434,9 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
                 @Override
                 public void onAnimationEnd(Animator animation) {
+                    mStreamerContent.setScaleY(1);
+                    mStreamerContent.setTranslationY(0);
+
                     ViewGroup.LayoutParams lpContent = mStreamerContent.getLayoutParams();
                     lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
                     lpContent.height = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -444,10 +450,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
                     mDragLayout.setDragEnable(false);
 
-                    mStreamerContent.setScaleY(1);
-                    mStreamerContent.setTranslationY(0);
-
-                    mSvPreviewer.setScaleX(1);
+//                    mSvPreviewer.setScaleX(1);
 
                     toggleControlPanel(true, false);
 
@@ -466,7 +469,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
             animator.setTarget(mStreamerContent);
             animator.start();
         } else if (style.equals(WindowStyle.SMALL)) {
-            ValueAnimator animator = ValueAnimator.ofFloat(mStreamerContent.getHeight(), 400f);
+            ValueAnimator animator = ValueAnimator.ofFloat(mStreamerContent.getHeight(), WINDOW_SIZE_SMALL[1]);
             animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
@@ -489,10 +492,10 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    float scale = 400f / mStreamerContent.getHeight();
+                    float scale = WINDOW_SIZE_SMALL[1] / mStreamerContent.getHeight();
                     ViewGroup.MarginLayoutParams lpContent = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
                     lpContent.width = (int) (mStreamerContent.getWidth() * scale);
-                    lpContent.height = 400;
+                    lpContent.height = WINDOW_SIZE_SMALL[1];
                     mStreamerContent.setLayoutParams(lpContent);
                     mStreamerContent.setScaleX(1);
                     mStreamerContent.setScaleY(1);
@@ -500,8 +503,8 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
                     mStreamerContent.setTranslationY(0);
 
                     ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
-                    lpSv.width = 300;
-                    lpSv.height = 400;
+                    lpSv.width = WINDOW_SIZE_SMALL[0];
+                    lpSv.height = WINDOW_SIZE_SMALL[1];
                     mSvPreviewer.setLayoutParams(lpSv);
 
                     mAnimating = false;
@@ -521,12 +524,12 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         } else {
             ViewGroup.MarginLayoutParams lpContent = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
             lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            lpContent.height = 640;
+            lpContent.height = WINDOW_SIZE_NORMAL[1];
             mStreamerContent.setLayoutParams(lpContent);
 
             ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
-            lpSv.width = 480;
-            lpSv.height = 640;
+            lpSv.width = WINDOW_SIZE_NORMAL[0];
+            lpSv.height = WINDOW_SIZE_NORMAL[1];
             mSvPreviewer.setLayoutParams(lpSv);
 
             toggleControlPanel(true, false);
