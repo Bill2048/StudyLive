@@ -423,7 +423,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
                     mStreamerContent.setScaleY(scale);
                     mStreamerContent.setTranslationY((value - mStreamerContent.getHeight()) / 2);
 
-//                    mSvPreviewer.setScaleX(scale);
+                    mSvPreviewer.setScaleX(scale);
                 }
             });
             animator.addListener(new Animator.AnimatorListener() {
@@ -450,7 +450,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
                     mDragLayout.setDragEnable(false);
 
-//                    mSvPreviewer.setScaleX(1);
+                    mSvPreviewer.setScaleX(1);
 
                     toggleControlPanel(true, false);
 
@@ -492,7 +492,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
                 @Override
                 public void onAnimationEnd(Animator animation) {
-                    float scale = WINDOW_SIZE_SMALL[1] / mStreamerContent.getHeight();
+                    float scale = ((float) WINDOW_SIZE_SMALL[1]) / mStreamerContent.getHeight();
                     ViewGroup.MarginLayoutParams lpContent = (ViewGroup.MarginLayoutParams) mStreamerContent.getLayoutParams();
                     lpContent.width = (int) (mStreamerContent.getWidth() * scale);
                     lpContent.height = WINDOW_SIZE_SMALL[1];
