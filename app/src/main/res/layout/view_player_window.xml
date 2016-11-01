@@ -13,6 +13,7 @@
             android:id="@+id/player_content"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
             android:background="@android:color/black">
 
 
@@ -21,6 +22,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_centerInParent="true"/>
+
+            <View
+                android:id="@+id/focus_panel"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
 
             <RelativeLayout
                 android:id="@+id/status_panel"

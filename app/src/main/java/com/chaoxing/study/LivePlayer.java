@@ -38,8 +38,8 @@ public class LivePlayer implements View.OnClickListener,
 
     private Handler mHandler = new Handler();
 
-    public final int[] WINDOW_SIZE_NORMAL = new int[]{480, 640};
-    public final int[] WINDOW_SIZE_SMALL = new int[]{360, 480};
+    public final int[] PREVIEW_SIZE_NORMAL = new int[]{480, 640};
+    public final int[] PREVIEW_SIZE_SMALL = new int[]{360, 480};
 
     public enum WindowStyle {
         NORMAL,
@@ -56,6 +56,8 @@ public class LivePlayer implements View.OnClickListener,
     private View mPlayerContent;
     private SurfaceView mSvPlayer;
     private SurfaceHolder mSvHolder;
+
+    private View mFocusPanel;
 
     private View mStatusPanel;
     private ProgressBar mPbLoading;
@@ -81,6 +83,7 @@ public class LivePlayer implements View.OnClickListener,
         mContext = context;
         mPlayerWindow = playerWindow;
         initView();
+        setWindowStyle(WindowStyle.NORMAL);
         initPlayer();
     }
 
@@ -93,6 +96,9 @@ public class LivePlayer implements View.OnClickListener,
         mSvPlayer = (SurfaceView) mPlayerWindow.findViewById(R.id.sv_player);
         mSvHolder = mSvPlayer.getHolder();
         mSvHolder.addCallback(mSurfaceCallback);
+
+        mFocusPanel = mPlayerWindow.findViewById(R.id.focus_panel);
+        mFocusPanel.setOnClickListener(this);
 
         mStatusPanel = mPlayerWindow.findViewById(R.id.status_panel);
         mPbLoading = (ProgressBar) mPlayerWindow.findViewById(R.id.pb_loading);
@@ -123,12 +129,6 @@ public class LivePlayer implements View.OnClickListener,
         mMediaPlayer.setScreenOnWhilePlaying(true);
         mMediaPlayer.setBufferTimeMax(3);
         mMediaPlayer.setTimeout(5, 30);
-        prepare("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVELI1557281DEC6");
-//        prepare("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVEWP1559FFCFA92");
-    }
-
-    public void prepare() {
-        prepare(null);
     }
 
     public void prepare(String dataSource) {
@@ -157,14 +157,25 @@ public class LivePlayer implements View.OnClickListener,
 
         } else if (id == R.id.ibtn_zoom) {
             zoomWindow();
+        } else if (id == R.id.focus_panel) {
+            if (!mAnimating) {
+                if (mWindowStyle.equals(WindowStyle.SMALL)) {
+                    zoomWindow();
+                } else {
+                    toggleControlPanel();
+                }
+            }
         }
     }
 
     private final SurfaceHolder.Callback mSurfaceCallback = new SurfaceHolder.Callback() {
         @Override
         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            if (mMediaPlayer != null && mMediaPlayer.isPlaying())
+            mSvHolder = holder;
+            if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                 mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+//                mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+            }
         }
 
         @Override
@@ -195,6 +206,7 @@ public class LivePlayer implements View.OnClickListener,
         mVideoWidth = mMediaPlayer.getVideoWidth();
         mVideoHeight = mMediaPlayer.getVideoHeight();
         mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+//        mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
         mMediaPlayer.start();
     }
 
@@ -239,8 +251,10 @@ public class LivePlayer implements View.OnClickListener,
                 mVideoWidth = mp.getVideoWidth();
                 mVideoHeight = mp.getVideoHeight();
 
-                if (mMediaPlayer != null)
+                if (mMediaPlayer != null) {
                     mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
+//                    mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
+                }
             }
         }
     }
@@ -363,140 +377,257 @@ public class LivePlayer implements View.OnClickListener,
         }
     }
 
+    public void resetWindow() {
+        setWindowStyle(WindowStyle.NORMAL);
+    }
+
+
     private void zoomWindow() {
-        if (mWindowStyle.equals(WindowStyle.LARGE)) {
-            setWindowStyle(WindowStyle.SMALL);
-        } else if (mWindowStyle.equals(WindowStyle.SMALL)) {
-            setWindowStyle(WindowStyle.NORMAL);
-        } else {
+        if (mWindowStyle.equals(WindowStyle.NORMAL)) {
             setWindowStyle(WindowStyle.LARGE);
+        } else if (mWindowStyle.equals(WindowStyle.LARGE)) {
+            setWindowStyle(WindowStyle.SMALL);
+        } else {
+            setWindowStyle(WindowStyle.NORMAL);
         }
     }
 
     public void setWindowStyle(WindowStyle style) {
         if (style.equals(WindowStyle.LARGE)) {
-            ValueAnimator animator = ValueAnimator.ofFloat(mPlayerContent.getHeight(), mPlayerWindow.getHeight());
-            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    float value = (float) animation.getAnimatedValue();
-                    float scale = value / mPlayerContent.getHeight();
-
-                    mPlayerContent.setScaleY(scale);
-                    mPlayerContent.setTranslationY((value - mPlayerContent.getHeight()) / 2);
-
-//                    mSvPreviewer.setScaleX(scale);
-                }
-            });
-            animator.addListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    toggleControlPanel(false, false);
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mPlayerContent.setScaleY(1);
-                    mPlayerContent.setTranslationY(0);
-
-                    ViewGroup.LayoutParams lpContent = mPlayerContent.getLayoutParams();
-                    lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
-                    lpContent.height = ViewGroup.LayoutParams.MATCH_PARENT;
-                    mPlayerContent.setLayoutParams(lpContent);
-
-                    int delta = Math.min(mPlayerWindow.getWidth() / 3, mPlayerWindow.getHeight() / 4);
-                    ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
-                    lpSv.width = delta * 3;
-                    lpSv.height = delta * 4;
-                    mSvPlayer.setLayoutParams(lpSv);
-
-                    mDragLayout.setDragEnable(false);
-
-//                    mSvPreviewer.setScaleX(1);
-
-                    toggleControlPanel(true, false);
-
-                    mAnimating = false;
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                }
-
-                @Override
-                public void onAnimationRepeat(Animator animation) {
-                }
-            });
-            animator.setDuration(300);
-            animator.setTarget(mPlayerContent);
-            animator.start();
+            zoomLargeWindow();
         } else if (style.equals(WindowStyle.SMALL)) {
-            ValueAnimator animator = ValueAnimator.ofFloat(mPlayerContent.getHeight(), WINDOW_SIZE_SMALL[1]);
-            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    float value = (float) animation.getAnimatedValue();
-                    float scale = value / mPlayerContent.getHeight();
-
-                    mPlayerContent.setScaleX(scale);
-                    mPlayerContent.setScaleY(scale);
-                    mPlayerContent.setTranslationX(-(scale * mPlayerContent.getWidth() - mPlayerContent.getWidth()) / 2);
-                    mPlayerContent.setTranslationY((value - mPlayerContent.getHeight()) / 2);
-                }
-            });
-            animator.addListener(new Animator.AnimatorListener() {
-                @Override
-                public void onAnimationStart(Animator animation) {
-                    mAnimating = true;
-                    toggleControlPanel(false, false);
-                    mDragLayout.setDragEnable(true);
-                }
-
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    float scale = WINDOW_SIZE_SMALL[1] / mPlayerContent.getHeight();
-                    ViewGroup.MarginLayoutParams lpContent = (ViewGroup.MarginLayoutParams) mPlayerContent.getLayoutParams();
-                    lpContent.width = (int) (mPlayerContent.getWidth() * scale);
-                    lpContent.height = WINDOW_SIZE_SMALL[1];
-                    mPlayerContent.setLayoutParams(lpContent);
-                    mPlayerContent.setScaleX(1);
-                    mPlayerContent.setScaleY(1);
-                    mPlayerContent.setTranslationX(0);
-                    mPlayerContent.setTranslationY(0);
-
-                    ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
-                    lpSv.width = WINDOW_SIZE_SMALL[0];
-                    lpSv.height = WINDOW_SIZE_SMALL[1];
-                    mSvPlayer.setLayoutParams(lpSv);
-
-                    mAnimating = false;
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                }
-
-                @Override
-                public void onAnimationRepeat(Animator animation) {
-                }
-            });
-            animator.setDuration(300);
-            animator.setTarget(mPlayerContent);
-            animator.start();
+            zoomSmallWindow();
         } else {
-            ViewGroup.MarginLayoutParams lpContent = (ViewGroup.MarginLayoutParams) mPlayerContent.getLayoutParams();
+            zoomNormalWindow();
+        }
+//        setWindowStyle2(style);
+    }
+
+    private void setWindowStyle2(WindowStyle style) {
+        if (style.equals(WindowStyle.LARGE)) {
+            ViewGroup.LayoutParams lpContent = mPlayerContent.getLayoutParams();
             lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            lpContent.height = WINDOW_SIZE_NORMAL[1];
+            lpContent.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            mPlayerContent.setLayoutParams(lpContent);
+
+            int delta = Math.min(mPlayerWindow.getWidth() / 3, mPlayerWindow.getHeight() / 4);
+            ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
+            lpSv.width = delta * 3;
+            lpSv.height = delta * 4;
+            mSvPlayer.setLayoutParams(lpSv);
+
+            mDragLayout.setDragEnable(false);
+            toggleControlPanel(true, false);
+        } else if (style.equals(WindowStyle.SMALL)) {
+            ViewGroup.MarginLayoutParams lpContent = (ViewGroup.MarginLayoutParams) mPlayerContent.getLayoutParams();
+            lpContent.width = PREVIEW_SIZE_SMALL[0];
+            lpContent.height = PREVIEW_SIZE_SMALL[1];
             mPlayerContent.setLayoutParams(lpContent);
 
             ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
-            lpSv.width = WINDOW_SIZE_NORMAL[0];
-            lpSv.height = WINDOW_SIZE_NORMAL[1];
+            lpSv.width = PREVIEW_SIZE_SMALL[0];
+            lpSv.height = PREVIEW_SIZE_SMALL[1];
             mSvPlayer.setLayoutParams(lpSv);
 
-            toggleControlPanel(true, false);
+            toggleControlPanel(false, false);
+            mDragLayout.setDragEnable(true);
+        } else {
+            ViewGroup.LayoutParams lpContent = mPlayerContent.getLayoutParams();
+            lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            lpContent.height = PREVIEW_SIZE_NORMAL[1];
+            mPlayerContent.setLayoutParams(lpContent);
+            mPlayerContent.invalidate();
+
+            ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
+            lpSv.width = PREVIEW_SIZE_NORMAL[0];
+            lpSv.height = PREVIEW_SIZE_NORMAL[1];
+            mSvPlayer.setLayoutParams(lpSv);
+
             mDragLayout.setDragEnable(false);
+            toggleControlPanel(true, false);
         }
         mWindowStyle = style;
     }
+
+    private void zoomNormalWindow() {
+        final float maxScaleX = ((float) mPlayerWindow.getWidth()) / mPlayerContent.getWidth();
+        final float maxScaleY = ((float) PREVIEW_SIZE_NORMAL[1]) / mPlayerContent.getHeight();
+        ValueAnimator animator = ValueAnimator.ofInt(mPlayerContent.getWidth(), mPlayerWindow.getWidth());
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int value = (int) animation.getAnimatedValue();
+                float scale = ((float) value) / mPlayerContent.getWidth();
+
+                float scaleX = Math.min(scale, maxScaleX);
+                float scaleY = Math.min(scale, maxScaleY);
+                mPlayerContent.setScaleX(scaleX);
+                mPlayerContent.setScaleY(scaleY);
+                mPlayerContent.setTranslationX(-(mPlayerContent.getWidth() * scaleX - mPlayerContent.getWidth()) / 2);
+                mPlayerContent.setTranslationY((mPlayerContent.getHeight() * scaleY - mPlayerContent.getHeight()) / 2);
+            }
+        });
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                mAnimating = true;
+                mDragLayout.setDragEnable(false);
+                toggleControlPanel(false, false);
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mWindowStyle = WindowStyle.NORMAL;
+
+                mPlayerContent.setScaleX(1);
+                mPlayerContent.setScaleY(1);
+                mPlayerContent.setTranslationX(0);
+                mPlayerContent.setTranslationY(0);
+                ViewGroup.LayoutParams lpContent = mPlayerContent.getLayoutParams();
+                lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                lpContent.height = PREVIEW_SIZE_NORMAL[1];
+                mPlayerContent.setLayoutParams(lpContent);
+
+                ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
+                lpSv.width = PREVIEW_SIZE_NORMAL[0];
+                lpSv.height = PREVIEW_SIZE_NORMAL[1];
+                mSvPlayer.setLayoutParams(lpSv);
+                mSvPlayer.getHolder().setFixedSize(PREVIEW_SIZE_NORMAL[0], PREVIEW_SIZE_NORMAL[1]);
+
+                toggleControlPanel(true, false);
+
+                mAnimating = false;
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+        });
+        animator.setDuration(300);
+        animator.setTarget(mPlayerContent);
+        animator.start();
+    }
+
+    private void zoomLargeWindow() {
+        ValueAnimator animator = ValueAnimator.ofFloat(mPlayerContent.getHeight(), mPlayerWindow.getHeight());
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float value = (float) animation.getAnimatedValue();
+                float scale = value / mPlayerContent.getHeight();
+
+                mPlayerContent.setScaleY(scale);
+                mPlayerContent.setTranslationY((value - mPlayerContent.getHeight()) / 2);
+
+                mSvPlayer.setScaleX(scale);
+            }
+        });
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                mDragLayout.setDragEnable(false);
+                toggleControlPanel(false, false);
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mWindowStyle = WindowStyle.LARGE;
+
+                mPlayerContent.setScaleY(1);
+                mPlayerContent.setTranslationY(0);
+
+                ViewGroup.LayoutParams lpContent = mPlayerContent.getLayoutParams();
+                lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                lpContent.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                mPlayerContent.setLayoutParams(lpContent);
+
+                int delta = Math.min(mPlayerWindow.getWidth() / 3, mPlayerWindow.getHeight() / 4);
+                ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
+                lpSv.width = delta * 3;
+                lpSv.height = delta * 4;
+                mSvPlayer.setLayoutParams(lpSv);
+
+                mDragLayout.setDragEnable(false);
+
+                mSvPlayer.setScaleX(1);
+
+                toggleControlPanel(true, false);
+
+                mAnimating = false;
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+        });
+        animator.setDuration(300);
+        animator.setTarget(mPlayerContent);
+        animator.start();
+    }
+
+    private void zoomSmallWindow() {
+        ValueAnimator animator = ValueAnimator.ofFloat(mPlayerContent.getHeight(), PREVIEW_SIZE_SMALL[1]);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float value = (float) animation.getAnimatedValue();
+                float scale = value / mPlayerContent.getHeight();
+
+                mPlayerContent.setScaleX(scale);
+                mPlayerContent.setScaleY(scale);
+                mPlayerContent.setTranslationX(-(scale * mPlayerContent.getWidth() - mPlayerContent.getWidth()) / 2);
+                mPlayerContent.setTranslationY((value - mPlayerContent.getHeight()) / 2);
+            }
+        });
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                mAnimating = true;
+                toggleControlPanel(false, false);
+                mDragLayout.setDragEnable(true);
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mWindowStyle = WindowStyle.SMALL;
+
+                float scale = ((float) PREVIEW_SIZE_SMALL[1]) / mPlayerContent.getHeight();
+                ViewGroup.MarginLayoutParams lpContent = (ViewGroup.MarginLayoutParams) mPlayerContent.getLayoutParams();
+                lpContent.width = (int) (mPlayerContent.getWidth() * scale);
+                lpContent.height = PREVIEW_SIZE_SMALL[1];
+                mPlayerContent.setLayoutParams(lpContent);
+                mPlayerContent.setScaleX(1);
+                mPlayerContent.setScaleY(1);
+                mPlayerContent.setTranslationX(0);
+                mPlayerContent.setTranslationY(0);
+
+                ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
+                lpSv.width = PREVIEW_SIZE_SMALL[0];
+                lpSv.height = PREVIEW_SIZE_SMALL[1];
+                mSvPlayer.setLayoutParams(lpSv);
+
+                mAnimating = false;
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+        });
+        animator.setDuration(300);
+        animator.setTarget(mPlayerContent);
+        animator.start();
+    }
+
 }

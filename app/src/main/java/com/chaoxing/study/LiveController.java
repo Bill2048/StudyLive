@@ -50,7 +50,8 @@ public class LiveController extends RelativeLayout implements StreamerListener {
 
     public void push() {
         mPushing = true;
-        mLivePlayer.hide();
+//        mLivePlayer.hide();
+        mLiveStreamer.resetWindow();
         mLiveStreamer.show();
         setVisibility(View.VISIBLE);
         if (mLiveStreamer.isInitiated()) {
@@ -63,11 +64,12 @@ public class LiveController extends RelativeLayout implements StreamerListener {
     public void pull() {
         mPulling = true;
 //        mLiveStreamer.hide();
+        mLivePlayer.resetWindow();
         mLivePlayer.show();
         setVisibility(View.VISIBLE);
-        mLivePlayer.prepare();
+        mLivePlayer.prepare("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVELI1557281DEC6");
+//        mLivePlayer.prepare("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVEWP1559FFCFA92");
     }
-
 
     @Override
     public void onInitiated() {
