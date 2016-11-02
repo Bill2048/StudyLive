@@ -10,12 +10,12 @@ import android.widget.RelativeLayout;
  * Created by huwei on 2016/10/23.
  */
 
-public class LiveController extends RelativeLayout implements StreamerListener {
+public class LiveController extends RelativeLayout implements OnPushListener {
 
-    private LiveStreamer mLiveStreamer;
+    private LiveStreamer mStreamer;
     private boolean mPushing;
 
-    private LivePlayer mLivePlayer;
+    private LivePlayer mPlayer;
     private boolean mPulling;
 
     public LiveController(Context context) {
@@ -38,43 +38,53 @@ public class LiveController extends RelativeLayout implements StreamerListener {
     }
 
     private void initStreamer() {
-        mLiveStreamer = new LiveStreamer(getContext(), findViewById(R.id.streamer_window));
-        mLiveStreamer.setStreamerListener(this);
-        mLiveStreamer.hide();
+        mStreamer = new LiveStreamer(getContext(), findViewById(R.id.streamer_window));
+        mStreamer.setStreamerListener(this);
+        mStreamer.hide();
     }
 
     private void initPlayer() {
-        mLivePlayer = new LivePlayer(getContext(), findViewById(R.id.player_window));
-        mLivePlayer.hide();
+        mPlayer = new LivePlayer(getContext(), findViewById(R.id.player_window));
+        mPlayer.hide();
     }
 
     public void push() {
         mPushing = true;
-//        mLivePlayer.hide();
-        mLiveStreamer.resetWindow();
-        mLiveStreamer.show();
+//        mPlayer.hide();
+        mStreamer.resetStreamer();
+        mStreamer.show();
         setVisibility(View.VISIBLE);
-        if (mLiveStreamer.isInitiated()) {
-            mLiveStreamer.startStream();
+        if (mStreamer.isInitiated()) {
+            mStreamer.startStream();
         } else {
-            mLiveStreamer.startCameraPreviewWithPermCheck();
+            mStreamer.startCameraPreviewWithPermCheck();
         }
+    }
+
+    public void stopPush() {
+        mStreamer.stopStream();
+        mStreamer.resetStreamer();
     }
 
     public void pull() {
         mPulling = true;
-//        mLiveStreamer.hide();
-        mLivePlayer.resetWindow();
-        mLivePlayer.show();
+//        mStreamer.hide();
+        mPlayer.resetPlayer();
+        mPlayer.show();
         setVisibility(View.VISIBLE);
-        mLivePlayer.prepare("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVELI1557281DEC6");
-//        mLivePlayer.prepare("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVEWP1559FFCFA92");
+        mPlayer.prepare("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVELI1557281DEC6");
+//        mPlayer.prepare("rtmp://chaoxing.rtmplive.ks-cdn.com/live/LIVEWP1559FFCFA92");
+    }
+
+    public void stopPull() {
+        mPlayer.stopPlayer();
+        mPlayer.resetPlayer();
     }
 
     @Override
     public void onInitiated() {
         if (mPushing) {
-            mLiveStreamer.startStream();
+            mStreamer.startStream();
         }
     }
 
@@ -91,25 +101,25 @@ public class LiveController extends RelativeLayout implements StreamerListener {
 
     public void onResume() {
         if (mPushing) {
-            mLiveStreamer.onResume();
+            mStreamer.onResume();
         }
         if (mPulling) {
-            mLivePlayer.onResume();
+            mPlayer.onResume();
         }
     }
 
     public void onPause() {
         if (mPushing) {
-            mLiveStreamer.onPause();
+            mStreamer.onPause();
         }
         if (mPulling) {
-            mLivePlayer.onPause();
+            mPlayer.onPause();
         }
     }
 
     public void onDestroy() {
-        mLiveStreamer.onDestroy();
-        mLivePlayer.onDestroy();
+        mStreamer.onDestroy();
+        mPlayer.onDestroy();
     }
 
     @Override

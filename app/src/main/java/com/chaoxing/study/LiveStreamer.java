@@ -77,7 +77,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
     private boolean mRecording;
     private boolean mInitiated;
 
-    private StreamerListener streamerListener;
+    private OnPushListener streamerListener;
 
     private boolean mAnimating;
 
@@ -359,12 +359,6 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         Log.i("**" + TAG, "onLogEvent() ：" + stringBuilder.toString());
     }
 
-    public void stopLive() {
-//        mChronometer.stop();
-//        mRecording = false;
-    }
-
-
     public void startStream() {
         startCameraPreviewWithPermCheck();
         mStreamer.startStream();
@@ -401,7 +395,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
 
     private WindowStyle mWindowStyle = WindowStyle.NORMAL;
 
-    public void resetWindow() {
+    public void resetStreamer() {
         setWindowStyle(WindowStyle.NORMAL);
     }
 
@@ -459,6 +453,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
                 lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
                 lpContent.height = PREVIEW_SIZE_NORMAL[1];
                 mStreamerContent.setLayoutParams(lpContent);
+
                 mStreamerContent.setScaleX(1);
                 mStreamerContent.setScaleY(1);
                 mStreamerContent.setTranslationX(0);
@@ -511,13 +506,13 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
             public void onAnimationEnd(Animator animation) {
                 mWindowStyle = WindowStyle.LARGE;
 
-                mStreamerContent.setScaleY(1);
-                mStreamerContent.setTranslationY(0);
-
                 ViewGroup.LayoutParams lpContent = mStreamerContent.getLayoutParams();
                 lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
                 lpContent.height = ViewGroup.LayoutParams.MATCH_PARENT;
                 mStreamerContent.setLayoutParams(lpContent);
+
+                mStreamerContent.setScaleY(1);
+                mStreamerContent.setTranslationY(0);
 
                 int delta = Math.min(mStreamerWindow.getWidth() / 3, mStreamerWindow.getHeight() / 4);
                 ViewGroup.LayoutParams lpSv = mSvPreviewer.getLayoutParams();
@@ -578,6 +573,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
                 lpContent.width = (int) (mStreamerContent.getWidth() * scale);
                 lpContent.height = PREVIEW_SIZE_SMALL[1];
                 mStreamerContent.setLayoutParams(lpContent);
+
                 mStreamerContent.setScaleX(1);
                 mStreamerContent.setScaleY(1);
                 mStreamerContent.setTranslationX(0);
@@ -622,7 +618,7 @@ public class LiveStreamer implements View.OnClickListener, KSYStreamer.OnInfoLis
         mStreamer.release();
     }
 
-    public void setStreamerListener(StreamerListener streamerListener) {
+    public void setStreamerListener(OnPushListener streamerListener) {
         this.streamerListener = streamerListener;
     }
 

@@ -77,6 +77,8 @@ public class LivePlayer implements View.OnClickListener,
     private int mVideoWidth;
     private int mVideoHeight;
 
+    private boolean mStopped;
+    private boolean mPause;
     private boolean mAnimating;
 
     public LivePlayer(Context context, View playerWindow) {
@@ -131,14 +133,32 @@ public class LivePlayer implements View.OnClickListener,
         mMediaPlayer.setTimeout(5, 30);
     }
 
+    public void resetPlayer() {
+        mStopped = false;
+        mPause = false;
+        setWindowStyle(WindowStyle.NORMAL);
+    }
+
     public void prepare(String dataSource) {
         try {
             if (dataSource != null && dataSource.trim().length() != 0) {
+                mMediaPlayer.reset();
                 mMediaPlayer.setDataSource(dataSource);
+                mMediaPlayer.prepareAsync();
+                mMediaPlayer.setDisplay(mSvHolder);
             }
-            mMediaPlayer.prepareAsync();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void stopPlayer() {
+        if (mStopped) {
+            return;
+        }
+        mStopped = true;
+        if (mMediaPlayer != null) {
+            mMediaPlayer.stop();
         }
     }
 
@@ -174,7 +194,6 @@ public class LivePlayer implements View.OnClickListener,
             mSvHolder = holder;
             if (mMediaPlayer != null && mMediaPlayer.isPlaying()) {
                 mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-//                mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
             }
         }
 
@@ -206,7 +225,6 @@ public class LivePlayer implements View.OnClickListener,
         mVideoWidth = mMediaPlayer.getVideoWidth();
         mVideoHeight = mMediaPlayer.getVideoHeight();
         mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-//        mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
         mMediaPlayer.start();
     }
 
@@ -253,7 +271,6 @@ public class LivePlayer implements View.OnClickListener,
 
                 if (mMediaPlayer != null) {
                     mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING);
-//                    mMediaPlayer.setVideoScalingMode(KSYMediaPlayer.VIDEO_SCALING_MODE_SCALE_TO_FIT);
                 }
             }
         }
@@ -297,24 +314,27 @@ public class LivePlayer implements View.OnClickListener,
 
     }
 
-    private boolean mPause;
-
     public void onResume() {
-        if (mMediaPlayer != null) {
+        if (mMediaPlayer != null && !mStopped) {
             mMediaPlayer.start();
             mPause = false;
         }
     }
 
     public void onPause() {
-        if (mMediaPlayer != null) {
+        if (mMediaPlayer != null && !mStopped) {
             mMediaPlayer.pause();
             mPause = true;
         }
     }
 
     public void onDestroy() {
+        if (mMediaPlayer != null) {
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
         mSvPlayer = null;
+        mHandler = null;
     }
 
 
@@ -377,11 +397,6 @@ public class LivePlayer implements View.OnClickListener,
         }
     }
 
-    public void resetWindow() {
-        setWindowStyle(WindowStyle.NORMAL);
-    }
-
-
     private void zoomWindow() {
         if (mWindowStyle.equals(WindowStyle.NORMAL)) {
             setWindowStyle(WindowStyle.LARGE);
@@ -400,53 +415,6 @@ public class LivePlayer implements View.OnClickListener,
         } else {
             zoomNormalWindow();
         }
-//        setWindowStyle2(style);
-    }
-
-    private void setWindowStyle2(WindowStyle style) {
-        if (style.equals(WindowStyle.LARGE)) {
-            ViewGroup.LayoutParams lpContent = mPlayerContent.getLayoutParams();
-            lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            lpContent.height = ViewGroup.LayoutParams.MATCH_PARENT;
-            mPlayerContent.setLayoutParams(lpContent);
-
-            int delta = Math.min(mPlayerWindow.getWidth() / 3, mPlayerWindow.getHeight() / 4);
-            ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
-            lpSv.width = delta * 3;
-            lpSv.height = delta * 4;
-            mSvPlayer.setLayoutParams(lpSv);
-
-            mDragLayout.setDragEnable(false);
-            toggleControlPanel(true, false);
-        } else if (style.equals(WindowStyle.SMALL)) {
-            ViewGroup.MarginLayoutParams lpContent = (ViewGroup.MarginLayoutParams) mPlayerContent.getLayoutParams();
-            lpContent.width = PREVIEW_SIZE_SMALL[0];
-            lpContent.height = PREVIEW_SIZE_SMALL[1];
-            mPlayerContent.setLayoutParams(lpContent);
-
-            ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
-            lpSv.width = PREVIEW_SIZE_SMALL[0];
-            lpSv.height = PREVIEW_SIZE_SMALL[1];
-            mSvPlayer.setLayoutParams(lpSv);
-
-            toggleControlPanel(false, false);
-            mDragLayout.setDragEnable(true);
-        } else {
-            ViewGroup.LayoutParams lpContent = mPlayerContent.getLayoutParams();
-            lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
-            lpContent.height = PREVIEW_SIZE_NORMAL[1];
-            mPlayerContent.setLayoutParams(lpContent);
-            mPlayerContent.invalidate();
-
-            ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
-            lpSv.width = PREVIEW_SIZE_NORMAL[0];
-            lpSv.height = PREVIEW_SIZE_NORMAL[1];
-            mSvPlayer.setLayoutParams(lpSv);
-
-            mDragLayout.setDragEnable(false);
-            toggleControlPanel(true, false);
-        }
-        mWindowStyle = style;
     }
 
     private void zoomNormalWindow() {
@@ -479,14 +447,15 @@ public class LivePlayer implements View.OnClickListener,
             public void onAnimationEnd(Animator animation) {
                 mWindowStyle = WindowStyle.NORMAL;
 
-                mPlayerContent.setScaleX(1);
-                mPlayerContent.setScaleY(1);
-                mPlayerContent.setTranslationX(0);
-                mPlayerContent.setTranslationY(0);
                 ViewGroup.LayoutParams lpContent = mPlayerContent.getLayoutParams();
                 lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
                 lpContent.height = PREVIEW_SIZE_NORMAL[1];
                 mPlayerContent.setLayoutParams(lpContent);
+
+                mPlayerContent.setScaleX(1);
+                mPlayerContent.setScaleY(1);
+                mPlayerContent.setTranslationX(0);
+                mPlayerContent.setTranslationY(0);
 
                 ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
                 lpSv.width = PREVIEW_SIZE_NORMAL[0];
@@ -537,13 +506,13 @@ public class LivePlayer implements View.OnClickListener,
             public void onAnimationEnd(Animator animation) {
                 mWindowStyle = WindowStyle.LARGE;
 
-                mPlayerContent.setScaleY(1);
-                mPlayerContent.setTranslationY(0);
-
                 ViewGroup.LayoutParams lpContent = mPlayerContent.getLayoutParams();
                 lpContent.width = ViewGroup.LayoutParams.MATCH_PARENT;
                 lpContent.height = ViewGroup.LayoutParams.MATCH_PARENT;
                 mPlayerContent.setLayoutParams(lpContent);
+
+                mPlayerContent.setScaleY(1);
+                mPlayerContent.setTranslationY(0);
 
                 int delta = Math.min(mPlayerWindow.getWidth() / 3, mPlayerWindow.getHeight() / 4);
                 ViewGroup.LayoutParams lpSv = mSvPlayer.getLayoutParams();
@@ -551,10 +520,9 @@ public class LivePlayer implements View.OnClickListener,
                 lpSv.height = delta * 4;
                 mSvPlayer.setLayoutParams(lpSv);
 
-                mDragLayout.setDragEnable(false);
-
                 mSvPlayer.setScaleX(1);
 
+                mDragLayout.setDragEnable(false);
                 toggleControlPanel(true, false);
 
                 mAnimating = false;
@@ -604,6 +572,7 @@ public class LivePlayer implements View.OnClickListener,
                 lpContent.width = (int) (mPlayerContent.getWidth() * scale);
                 lpContent.height = PREVIEW_SIZE_SMALL[1];
                 mPlayerContent.setLayoutParams(lpContent);
+
                 mPlayerContent.setScaleX(1);
                 mPlayerContent.setScaleY(1);
                 mPlayerContent.setTranslationX(0);

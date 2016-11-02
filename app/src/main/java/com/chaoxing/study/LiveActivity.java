@@ -2,13 +2,17 @@ package com.chaoxing.study;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v7.widget.SwitchCompat;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
 public class LiveActivity extends FragmentActivity {
 
     private LiveController mLiveController;
+    private SwitchCompat mSwPush;
+    private SwitchCompat mSwPull;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,18 +21,28 @@ public class LiveActivity extends FragmentActivity {
 
         mLiveController = (LiveController) findViewById(R.id.live_controller);
 
-
-        findViewById(R.id.debug_btn_push).setOnClickListener(new View.OnClickListener() {
+        mSwPush = (SwitchCompat) findViewById(R.id.sw_push);
+        mSwPush.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View view) {
-                mLiveController.push();
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    mLiveController.push();
+                } else {
+                    mLiveController.stopPush();
+                }
             }
         });
 
-        findViewById(R.id.debug_btn_pull).setOnClickListener(new View.OnClickListener() {
+        mSwPull = (SwitchCompat) findViewById(R.id.sw_pull);
+
+        mSwPull.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                mLiveController.pull();
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    mLiveController.pull();
+                } else {
+                    mLiveController.stopPull();
+                }
             }
         });
 
